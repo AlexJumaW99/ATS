@@ -11,18 +11,77 @@
             <button class="btn btn-dark float-end" id="menu-close">&larr;</button>
         </div>
         <div class="list-group list-group-flush">
-            <a href="#" class="list-group-item list-group-item-action bg-dark text-white">Dashboard</a>
-            <a href="#" class="list-group-item list-group-item-action bg-dark text-white">Upload Resume</a>
-            <a href="#" class="list-group-item list-group-item-action bg-dark text-white">Candidates</a>
+            <a href="#" class="list-group-item list-group-item-action bg-dark text-white" id="dashboard-link">Dashboard</a>
+            <a href="#" class="list-group-item list-group-item-action bg-dark text-white" id="upload-resume-link">Upload Resume</a>
+            <a href="#" class="list-group-item list-group-item-action bg-dark text-white" id="candidates-link">Candidates</a>
             <a href="#" class="list-group-item list-group-item-action bg-dark text-white">Settings</a>
         </div>
     </div>
     <div id="page-content-wrapper">
-        <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-            <h1 class="mt-4">Welcome to the Parser!</h1>
-        </nav>
-        <div class="container-fluid">
-            <p>This is where the main content of your resume parser will go.</p>
+        <div id="dashboard-content">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <h1 class="mt-4">Welcome to the Parser!</h1>
+            </nav>
+            <div class="container-fluid">
+                <p>This is where the main content of your resume parser will go.</p>
+            </div>
+        </div>
+
+        <div id="upload-resume-content" style="display: none;">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <h1 class="mt-4">Upload Resumes</h1>
+            </nav>
+            <div class="container-fluid">
+                <form action="/upload" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="resume-upload" class="form-label">Select one or more files (PDF, JPEG, PNG, DOCX):</label>
+                        <input class="form-control" type="file" id="resume-upload" name="resumes" multiple accept=".pdf,.jpeg,.jpg,.png,.docx">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="candidates-content" style="display: none;">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <h1 class="mt-4">Candidates</h1>
+            </nav>
+            <div class="container-fluid">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">c_id</th>
+                            <th scope="col">First Name</th>
+                            <th scope="col">Last Name</th>
+                            <th scope="col">DOB</th>
+                            <th scope="col">Resume File Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">1</th>
+                            <td>John</td>
+                            <td>Doe</td>
+                            <td>1990-01-15</td>
+                            <td>john_doe_resume.pdf</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">2</th>
+                            <td>Jane</td>
+                            <td>Smith</td>
+                            <td>1992-05-20</td>
+                            <td>jane_smith_cv.docx</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">3</th>
+                            <td>Peter</td>
+                            <td>Jones</td>
+                            <td>1988-11-30</td>
+                            <td>peter_jones_cv.pdf</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -98,6 +157,14 @@
         const wrapper = document.getElementById('wrapper');
         const isSidebarToggled = localStorage.getItem('isSidebarToggled') === 'true';
 
+        const dashboardLink = document.getElementById('dashboard-link');
+        const uploadResumeLink = document.getElementById('upload-resume-link');
+        const candidatesLink = document.getElementById('candidates-link');
+
+        const dashboardContent = document.getElementById('dashboard-content');
+        const uploadResumeContent = document.getElementById('upload-resume-content');
+        const candidatesContent = document.getElementById('candidates-content');
+
         if (isSidebarToggled) {
             wrapper.classList.add('toggled');
             menuOpen.style.display = 'block';
@@ -115,6 +182,27 @@
             wrapper.classList.remove('toggled');
             localStorage.setItem('isSidebarToggled', 'false');
             menuOpen.style.display = 'none';
+        });
+
+        dashboardLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            dashboardContent.style.display = 'block';
+            uploadResumeContent.style.display = 'none';
+            candidatesContent.style.display = 'none';
+        });
+
+        uploadResumeLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            dashboardContent.style.display = 'none';
+            uploadResumeContent.style.display = 'block';
+            candidatesContent.style.display = 'none';
+        });
+
+        candidatesLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            dashboardContent.style.display = 'none';
+            uploadResumeContent.style.display = 'none';
+            candidatesContent.style.display = 'block';
         });
     });
 </script>
