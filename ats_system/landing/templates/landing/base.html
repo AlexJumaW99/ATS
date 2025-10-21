@@ -4,42 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Jumaiya ATS{% endblock %}</title>
-    <!-- Tailwind CSS for modern styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* A simple font for a professional feel */
         body {
-            font-family: 'Inter', sans-serif;
+          background: #fafafa;
+          color: #333333;
         }
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        .navbar {
+          margin-bottom: 2rem;
+        }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-    <nav class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex-shrink-0 flex items-center">
-                    <!-- Company Name -->
-                    <a href="{% url 'landing_page' %}" class="text-2xl font-bold text-indigo-600">Jumaiya</a>
-                </div>
-                <div class="flex items-center">
-                    <!-- Navigation links change based on login status -->
-                    {% if user.is_authenticated %}
-                        <span class="mr-4">Hello, {{ user.username }}</span>
-                        <a href="{% url 'logout' %}" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">Logout</a>
-                    {% else %}
-                        <a href="{% url 'login' %}" class="px-3 py-2 rounded-md text-sm font-medium text-indigo-600 hover:text-indigo-500 hover:bg-indigo-50">Login</a>
-                    {% endif %}
+<body>
+    <header class="site-header">
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+            <div class="container">
+                <a class="navbar-brand mr-4" href="{% url 'landing_page' %}">Jumaiya ATS</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarToggle">
+                    <div class="navbar-nav ms-auto">
+                        {% if user.is_authenticated %}
+                            <a class="nav-item nav-link" href="#">Welcome, {{ user.username }}</a>
+                            <a class="nav-item nav-link" href="{% url 'logout' %}">Logout</a>
+                        {% else %}
+                            <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-        </div>
-    </nav>
+        </nav>
+    </header>
 
-    <main>
+    <main role="main" class="container">
         {% block content %}
-        <!-- Content from other templates will be injected here -->
         {% endblock %}
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

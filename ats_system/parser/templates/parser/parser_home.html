@@ -1,0 +1,77 @@
+{% extends 'landing/base.html' %}
+
+{% block title %}Resume Parser - Jumaiya ATS{% endblock %}
+
+{% block content %}
+<div class="d-flex" id="wrapper">
+    <div class="bg-light border-right" id="sidebar-wrapper">
+        <div class="sidebar-heading">Parser Menu</div>
+        <div class="list-group list-group-flush">
+            <a href="#" class="list-group-item list-group-item-action bg-light">Dashboard</a>
+            <a href="#" class="list-group-item list-group-item-action bg-light">Upload Resume</a>
+            <a href="#" class="list-group-item list-group-item-action bg-light">Candidates</a>
+            <a href="#" class="list-group-item list-group-item-action bg-light">Settings</a>
+        </div>
+    </div>
+    <div id="page-content-wrapper">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+            <button class="btn btn-primary" id="menu-toggle">Toggle Menu</button>
+        </nav>
+        <div class="container-fluid">
+            <h1 class="mt-4">Welcome to the Parser!</h1>
+            <p>This is where the main content of your resume parser will go.</p>
+        </div>
+    </div>
+    </div>
+
+<style>
+    #wrapper {
+        display: flex;
+    }
+    #sidebar-wrapper {
+        min-height: 100vh;
+        margin-left: -15rem;
+        transition: margin .25s ease-out;
+    }
+    #sidebar-wrapper .sidebar-heading {
+        padding: 0.875rem 1.25rem;
+        font-size: 1.2rem;
+    }
+    #page-content-wrapper {
+        min-width: 100vw;
+    }
+    #wrapper.toggled #sidebar-wrapper {
+        margin-left: 0;
+    }
+    @media (min-width: 768px) {
+        #sidebar-wrapper {
+            margin-left: 0;
+        }
+        #page-content-wrapper {
+            min-width: 0;
+            width: 100%;
+        }
+        #wrapper.toggled #sidebar-wrapper {
+            margin-left: -15rem;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const menuToggle = document.getElementById('menu-toggle');
+        const wrapper = document.getElementById('wrapper');
+        const isSidebarToggled = localStorage.getItem('isSidebarToggled') === 'true';
+
+        if (isSidebarToggled) {
+            wrapper.classList.add('toggled');
+        }
+
+        menuToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            wrapper.classList.toggle('toggled');
+            localStorage.setItem('isSidebarToggled', wrapper.classList.contains('toggled'));
+        });
+    });
+</script>
+{% endblock %}

@@ -36,7 +36,7 @@ def login_view(request):
         if user is not None:
             # If authentication is successful, log the user in
             login(request, user)
-            return redirect('landing_page') # Redirect to the main page
+            return redirect('parser_home') # Redirect to the parser app's home page
         else:
             # If authentication fails, set an error message
             if not error_message:
