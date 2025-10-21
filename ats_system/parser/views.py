@@ -41,7 +41,7 @@ def upload_resume(request):
         if raw_csv_outputs:
             csv_output = "\n\n".join(raw_csv_outputs)
 
-        return JsonResponse({'csv_output': csv_output})
+        return JsonResponse({'csv_output': csv_output, 'parsed_data': all_parsed_data})
 
     candidates = Candidate.objects.all()
     return render(request, 'parser/parser_home.html', {'candidates': candidates, 'csv_output': csv_output})

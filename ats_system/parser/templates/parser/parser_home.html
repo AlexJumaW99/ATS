@@ -46,15 +46,24 @@
                         <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
-
-                <div id="gemini-output" class="mt-4" style="display: none;">
-                    <h3>Gemini CSV Output:</h3>
-                    <pre><code></code></pre>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div id="gemini-output" class="mt-4" style="display: none;">
+                            <h3>Gemini Raw Text Response:</h3>
+                            <pre><code></code></pre>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="parsed-output" class="mt-4" style="display: none;">
+                            <h3>Parsed JSON Output:</h3>
+                            <pre><code></code></pre>
+                        </div>
+                    </div>
                 </div>
 
                 {% if csv_output %}
                 <div class="mt-4">
-                    <h3>Gemini CSV Output:</h3>
+                    <h3>Gemini JSON Output:</h3>
                     <pre><code>{{ csv_output }}</code></pre>
                 </div>
                 {% endif %}
@@ -222,11 +231,14 @@
         const loadingAnimation = document.getElementById('loading-animation');
         const geminiOutput = document.getElementById('gemini-output');
         const geminiOutputCode = geminiOutput.querySelector('code');
+        const parsedOutput = document.getElementById('parsed-output');
+        const parsedOutputCode = parsedOutput.querySelector('code');
 
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             loadingAnimation.style.display = 'block';
             geminiOutput.style.display = 'none';
+            parsedOutput.style.display = 'none';
 
             const formData = new FormData(uploadForm);
             const response = await fetch(uploadForm.action, {
@@ -243,6 +255,10 @@
             if (data.csv_output) {
                 geminiOutputCode.textContent = data.csv_output;
                 geminiOutput.style.display = 'block';
+            }
+            if (data.parsed_data) {
+                parsedOutputCode.textContent = JSON.stringify(data.parsed_data, null, 2);
+                parsedOutput.style.display = 'block';
             }
         });
     });
