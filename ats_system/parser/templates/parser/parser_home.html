@@ -75,15 +75,51 @@
                 <h1 class="mt-4">Candidates</h1>
             </nav>
             <div class="container-fluid">
-                <table class="table">
+                <form id="filter-form" method="get" class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <input type="text" name="first_name" class="form-control" placeholder="First Name" value="{{ request.GET.first_name }}">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="text" name="last_name" class="form-control" placeholder="Last Name" value="{{ request.GET.last_name }}">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="text" name="date_of_birth" class="form-control" placeholder="DOB (YYYY-MM-DD)" value="{{ request.GET.date_of_birth }}">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="text" name="degree" class="form-control" placeholder="Degree" value="{{ request.GET.degree }}">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="text" name="degree_school" class="form-control" placeholder="Degree School" value="{{ request.GET.degree_school }}">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="text" name="diploma" class="form-control" placeholder="Diploma" value="{{ request.GET.diploma }}">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="text" name="diploma_school" class="form-control" placeholder="Diploma School" value="{{ request.GET.diploma_school }}">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="text" name="resume_file_name" class="form-control" placeholder="Resume File" value="{{ request.GET.resume_file_name }}">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                            <a href="{% url 'parser_home' %}" class="btn btn-secondary">Clear</a>
+                        </div>
+                    </div>
+                </form>
+
+                <table class="table table-striped table-hover">
                     <thead>
                         <tr>
-                            <th scope="col">c_id</th>
-                            <th scope="col">First Name</th>
-                            <th scope="col">Last Name</th>
-                            <th scope="col">DOB</th>
-                            <th scope="col">Degree</th>
-                            <th scope="col">Resume File Name</th>
+                            <th scope="col"><a href="?sort_by=id&order={% if request.GET.sort_by == 'id' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">c_id</a></th>
+                            <th scope="col"><a href="?sort_by=first_name&order={% if request.GET.sort_by == 'first_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">First Name</a></th>
+                            <th scope="col"><a href="?sort_by=last_name&order={% if request.GET.sort_by == 'last_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Last Name</a></th>
+                            <th scope="col"><a href="?sort_by=date_of_birth&order={% if request.GET.sort_by == 'date_of_birth' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">DOB</a></th>
+                            <th scope="col"><a href="?sort_by=degree&order={% if request.GET.sort_by == 'degree' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Degree</a></th>
+                            <th scope="col"><a href="?sort_by=degree_school&order={% if request.GET.sort_by == 'degree_school' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Degree School</a></th>
+                            <th scope="col"><a href="?sort_by=diploma&order={% if request.GET.sort_by == 'diploma' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Diploma</a></th>
+                            <th scope="col"><a href="?sort_by=diploma_school&order={% if request.GET.sort_by == 'diploma_school' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Diploma School</a></th>
+                            <th scope="col"><a href="?sort_by=resume_file_name&order={% if request.GET.sort_by == 'resume_file_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Resume File Name</a></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -94,11 +130,14 @@
                             <td>{{ candidate.last_name|default_if_none:"" }}</td>
                             <td>{{ candidate.date_of_birth|default_if_none:"" }}</td>
                             <td>{{ candidate.degree|default_if_none:"" }}</td>
+                            <td>{{ candidate.degree_school|default_if_none:"" }}</td>
+                            <td>{{ candidate.diploma|default_if_none:"" }}</td>
+                            <td>{{ candidate.diploma_school|default_if_none:"" }}</td>
                             <td>{{ candidate.resume_file_name }}</td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6">No candidates found.</td>
+                            <td colspan="9">No candidates found.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

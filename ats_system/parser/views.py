@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Candidate
 from .gemini_parser import process_resume
 from django.http import JsonResponse
+from django.db.models import Q
 
 @login_required
 def parser_home(request):
@@ -10,6 +11,29 @@ def parser_home(request):
     Renders the main page of the parser app and displays candidates.
     """
     candidates = Candidate.objects.all()
+
+    # Filtering
+    filters = {
+        'first_name__icontains': request.GET.get('first_name'),
+        'last_name__icontains': request.GET.get('last_name'),
+        'date_of_birth__icontains': request.GET.get('date_of_birth'),
+        'degree__icontains': request.GET.get('degree'),
+        'degree_school__icontains': request.GET.get('degree_school'),
+        'diploma__icontains': request.GET.get('diploma'),
+        'diploma_school__icontains': request.GET.get('diploma_school'),
+        'resume_file_name__icontains': request.GET.get('resume_file_name'),
+    }
+    for key, value in filters.items():
+        if value:
+            candidates = candidates.filter(**{key: value})
+
+    # Sorting
+    sort_by = request.GET.get('sort_by', 'id')
+    order = request.GET.get('order', 'asc')
+    if order == 'desc':
+        sort_by = f'-{sort_by}'
+    candidates = candidates.order_by(sort_by)
+
     return render(request, 'parser/parser_home.html', {'candidates': candidates})
 
 @login_required
@@ -36,6 +60,9 @@ def upload_resume(request):
                         last_name=item.get('last_name'),
                         date_of_birth=item.get('date_of_birth') or None,
                         degree=item.get('degree'),
+                        degree_school=item.get('degree_school'),
+                        diploma=item.get('diploma'),
+                        diploma_school=item.get('diploma_school'),
                         resume_file_name=resume_file.name
                     )
         if raw_csv_outputs:
