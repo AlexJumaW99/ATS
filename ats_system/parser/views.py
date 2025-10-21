@@ -16,6 +16,7 @@ def parser_home(request):
     filters = {
         'first_name__icontains': request.GET.get('first_name'),
         'last_name__icontains': request.GET.get('last_name'),
+        'address__icontains': request.GET.get('address'),
         'degree__icontains': request.GET.get('degree'),
         'degree_school__icontains': request.GET.get('degree_school'),
         'diploma__icontains': request.GET.get('diploma'),
@@ -66,6 +67,7 @@ def upload_resume(request):
                         first_name=item.get('first_name'),
                         last_name=item.get('last_name'),
                         date_of_birth=item.get('date_of_birth') or None,
+                        address=item.get('address'),
                         degree=item.get('degree'),
                         degree_school=item.get('degree_school'),
                         diploma=item.get('diploma'),

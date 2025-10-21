@@ -4,6 +4,7 @@ class Candidate(models.Model):
     first_name = models.CharField(max_length=100, null=True, blank=True)
     last_name = models.CharField(max_length=100, null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
     degree = models.CharField(max_length=255, null=True, blank=True)
     degree_school = models.CharField(max_length=255, null=True, blank=True)
     diploma = models.CharField(max_length=255, null=True, blank=True)

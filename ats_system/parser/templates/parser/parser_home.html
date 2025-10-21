@@ -84,6 +84,9 @@
                             <input type="text" name="last_name" class="form-control autocomplete" placeholder="Last Name" value="{{ request.GET.last_name }}">
                         </div>
                         <div class="col-md-2">
+                            <input type="text" name="address" class="form-control autocomplete" placeholder="Address" value="{{ request.GET.address }}">
+                        </div>
+                        <div class="col-md-2">
                             <label for="min_dob" class="form-label">Min DOB</label>
                             <input type="date" id="min_dob" name="min_dob" class="form-control" value="{{ request.GET.min_dob }}">
                         </div>
@@ -119,6 +122,7 @@
                             <th scope="col"><a href="?sort_by=id&order={% if request.GET.sort_by == 'id' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">c_id</a></th>
                             <th scope="col"><a href="?sort_by=first_name&order={% if request.GET.sort_by == 'first_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">First Name</a></th>
                             <th scope="col"><a href="?sort_by=last_name&order={% if request.GET.sort_by == 'last_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Last Name</a></th>
+                            <th scope="col"><a href="?sort_by=address&order={% if request.GET.sort_by == 'address' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Address</a></th>
                             <th scope="col"><a href="?sort_by=date_of_birth&order={% if request.GET.sort_by == 'date_of_birth' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">DOB</a></th>
                             <th scope="col"><a href="?sort_by=degree&order={% if request.GET.sort_by == 'degree' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Degree</a></th>
                             <th scope="col"><a href="?sort_by=degree_school&order={% if request.GET.sort_by == 'degree_school' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Degree School</a></th>
@@ -133,6 +137,7 @@
                             <th scope="row">{{ candidate.id }}</th>
                             <td>{{ candidate.first_name|default_if_none:"" }}</td>
                             <td>{{ candidate.last_name|default_if_none:"" }}</td>
+                            <td>{{ candidate.address|default_if_none:"" }}</td>
                             <td>{{ candidate.date_of_birth|default_if_none:"" }}</td>
                             <td>{{ candidate.degree|default_if_none:"" }}</td>
                             <td>{{ candidate.degree_school|default_if_none:"" }}</td>
@@ -142,7 +147,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="9">No candidates found.</td>
+                            <td colspan="10">No candidates found.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
