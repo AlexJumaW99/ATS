@@ -226,6 +226,29 @@
         const uploadResumeContent = document.getElementById('upload-resume-content');
         const candidatesContent = document.getElementById('candidates-content');
 
+        // Function to show a specific section and hide others
+        const showSection = (sectionToShow) => {
+            [dashboardContent, uploadResumeContent, candidatesContent].forEach(section => {
+                section.style.display = 'none';
+            });
+            sectionToShow.style.display = 'block';
+            localStorage.setItem('activeSection', sectionToShow.id);
+        };
+
+        // Check local storage for the active section on page load
+        const activeSectionId = localStorage.getItem('activeSection');
+        if (activeSectionId) {
+            const sectionToShow = document.getElementById(activeSectionId);
+            if (sectionToShow) {
+                showSection(sectionToShow);
+            } else {
+                showSection(dashboardContent); // Default to dashboard if ID is invalid
+            }
+        } else {
+            showSection(dashboardContent); // Default to dashboard
+        }
+
+
         if (isSidebarToggled) {
             wrapper.classList.add('toggled');
             menuOpen.style.display = 'block';
@@ -247,23 +270,17 @@
 
         dashboardLink.addEventListener('click', (e) => {
             e.preventDefault();
-            dashboardContent.style.display = 'block';
-            uploadResumeContent.style.display = 'none';
-            candidatesContent.style.display = 'none';
+            showSection(dashboardContent);
         });
 
         uploadResumeLink.addEventListener('click', (e) => {
             e.preventDefault();
-            dashboardContent.style.display = 'none';
-            uploadResumeContent.style.display = 'block';
-            candidatesContent.style.display = 'none';
+            showSection(uploadResumeContent);
         });
 
         candidatesLink.addEventListener('click', (e) => {
             e.preventDefault();
-            dashboardContent.style.display = 'none';
-            uploadResumeContent.style.display = 'none';
-            candidatesContent.style.display = 'block';
+            showSection(candidatesContent);
         });
 
         const uploadForm = document.getElementById('upload-form');
