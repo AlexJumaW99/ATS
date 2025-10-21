@@ -16,7 +16,6 @@ def parser_home(request):
     filters = {
         'first_name__icontains': request.GET.get('first_name'),
         'last_name__icontains': request.GET.get('last_name'),
-        'date_of_birth__icontains': request.GET.get('date_of_birth'),
         'degree__icontains': request.GET.get('degree'),
         'degree_school__icontains': request.GET.get('degree_school'),
         'diploma__icontains': request.GET.get('diploma'),
@@ -26,6 +25,14 @@ def parser_home(request):
     for key, value in filters.items():
         if value:
             candidates = candidates.filter(**{key: value})
+
+    # Date of Birth range filtering
+    min_dob = request.GET.get('min_dob')
+    max_dob = request.GET.get('max_dob')
+    if min_dob:
+        candidates = candidates.filter(date_of_birth__gte=min_dob)
+    if max_dob:
+        candidates = candidates.filter(date_of_birth__lte=max_dob)
 
     # Sorting
     sort_by = request.GET.get('sort_by', 'id')
@@ -72,3 +79,11 @@ def upload_resume(request):
 
     candidates = Candidate.objects.all()
     return render(request, 'parser/parser_home.html', {'candidates': candidates, 'csv_output': csv_output})
+
+def autocomplete(request):
+    if 'term' in request.GET:
+        field = request.GET.get('field')
+        qs = Candidate.objects.filter(**{f'{field}__icontains': request.GET.get('term')})
+        values = list(qs.values_list(field, flat=True).distinct())
+        return JsonResponse(values, safe=False)
+    return JsonResponse([], safe=False)

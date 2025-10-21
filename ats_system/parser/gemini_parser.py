@@ -26,11 +26,12 @@ def get_gemini_response(resume_content):
     Here are the required fields:
     1. first_name: The candidate's first name. Usually found at/near the beginning of the resume, as a header. 
     2. last_name: The candidate's last name. Usually found at/near the beginning of the resume, as part of the header. 
-    3. date_of_birth: The candidate's date of birth (e.g., 'Jan 01, 1990') should be written in YYYY-MM-DD format. If not available, use an empty string.
-    4. diploma: what they studied for their diploma (if applicable) (e.g., 'Diploma in Data Science and Machine Learning'). 
-    5. diploma_school:  The school they studied in for their diploma (e.g., 'Red River College'). Usually found next to the course they studied for their diploma (e.g., 'Diploma in Welding')
-    6. degree: The highest degree or primary field of study mentioned (e.g., 'Bsc. Computer Science', 'BA Philosophy' etc.).
-    7. degree_school: The school they studied in for their degree (e.g., 'University of Nairobi'). Usually found next to the course they studied for their degree (e.g., 'BA Psychology')
+    3. address: Where they live. Try and look for a Canadian or American address (e.g., 640 Pepperloaf Crescent, Winnipeg, MB R3R 1E8)
+    4. date_of_birth: The candidate's date of birth (e.g., 'Jan 01, 1990') should be written in YYYY-MM-DD format. If not available, use an empty string.
+    5. diploma: what they studied for their diploma (if applicable) (e.g., 'Diploma in Data Science and Machine Learning'). 
+    6. diploma_school:  The school they studied in for their diploma (e.g., 'Red River College'). Usually found next to the course they studied for their diploma (e.g., 'Diploma in Welding')
+    7. degree: The highest degree or primary field of study mentioned (e.g., 'Bsc. Computer Science', 'BA Philosophy' etc.).
+    8. degree_school: The school they studied in for their degree (e.g., 'University of Nairobi'). Usually found next to the course they studied for their degree (e.g., 'BA Psychology')
 
     Please ensure the output is a single JSON array of objects, with no additional text or formatting outside of the JSON.
     If the resume contains information for only one person, the array should contain a single object.

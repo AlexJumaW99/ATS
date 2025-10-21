@@ -78,28 +78,33 @@
                 <form id="filter-form" method="get" class="mb-4">
                     <div class="row g-3">
                         <div class="col-md-2">
-                            <input type="text" name="first_name" class="form-control" placeholder="First Name" value="{{ request.GET.first_name }}">
+                            <input type="text" name="first_name" class="form-control autocomplete" placeholder="First Name" value="{{ request.GET.first_name }}">
                         </div>
                         <div class="col-md-2">
-                            <input type="text" name="last_name" class="form-control" placeholder="Last Name" value="{{ request.GET.last_name }}">
+                            <input type="text" name="last_name" class="form-control autocomplete" placeholder="Last Name" value="{{ request.GET.last_name }}">
                         </div>
                         <div class="col-md-2">
-                            <input type="text" name="date_of_birth" class="form-control" placeholder="DOB (YYYY-MM-DD)" value="{{ request.GET.date_of_birth }}">
+                            <label for="min_dob" class="form-label">Min DOB</label>
+                            <input type="date" id="min_dob" name="min_dob" class="form-control" value="{{ request.GET.min_dob }}">
                         </div>
                         <div class="col-md-2">
-                            <input type="text" name="degree" class="form-control" placeholder="Degree" value="{{ request.GET.degree }}">
+                            <label for="max_dob" class="form-label">Max DOB</label>
+                            <input type="date" id="max_dob" name="max_dob" class="form-control" value="{{ request.GET.max_dob }}">
                         </div>
                         <div class="col-md-2">
-                            <input type="text" name="degree_school" class="form-control" placeholder="Degree School" value="{{ request.GET.degree_school }}">
+                            <input type="text" name="degree" class="form-control autocomplete" placeholder="Degree" value="{{ request.GET.degree }}">
                         </div>
                         <div class="col-md-2">
-                            <input type="text" name="diploma" class="form-control" placeholder="Diploma" value="{{ request.GET.diploma }}">
+                            <input type="text" name="degree_school" class="form-control autocomplete" placeholder="Degree School" value="{{ request.GET.degree_school }}">
                         </div>
                         <div class="col-md-2">
-                            <input type="text" name="diploma_school" class="form-control" placeholder="Diploma School" value="{{ request.GET.diploma_school }}">
+                            <input type="text" name="diploma" class="form-control autocomplete" placeholder="Diploma" value="{{ request.GET.diploma }}">
                         </div>
                         <div class="col-md-2">
-                            <input type="text" name="resume_file_name" class="form-control" placeholder="Resume File" value="{{ request.GET.resume_file_name }}">
+                            <input type="text" name="diploma_school" class="form-control autocomplete" placeholder="Diploma School" value="{{ request.GET.diploma_school }}">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="text" name="resume_file_name" class="form-control autocomplete" placeholder="Resume File" value="{{ request.GET.resume_file_name }}">
                         </div>
                         <div class="col-md-2">
                             <button type="submit" class="btn btn-primary">Filter</button>
@@ -209,8 +214,44 @@
         box-shadow: 0 0 10px #ffd700;
         transform: scale(1.02);
     }
+    .ui-autocomplete {
+        position: absolute;
+        z-index: 1000;
+        cursor: default;
+        padding: 0;
+        margin-top: 2px;
+        list-style: none;
+        background-color: #ffffff;
+        border: 1px solid #ccc;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+        -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
+    .ui-menu-item > a.ui-corner-all {
+        display: block;
+        padding: 3px 15px;
+        clear: both;
+        font-weight: normal;
+        line-height: 18px;
+        color: #555555;
+        white-space: nowrap;
+    }
+    .ui-state-hover, .ui-state-active {
+        color: #ffffff;
+        text-decoration: none;
+        background-color: #0088cc;
+        border-radius: 0px;
+        -webkit-border-radius: 0px;
+        -moz-border-radius: 0px;
+        background-image: none;
+    }
 </style>
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui/1.12.1/jquery-ui.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui/1.12.1/jquery-ui.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const menuClose = document.getElementById('menu-close');
@@ -316,6 +357,28 @@
                 parsedOutputCode.textContent = JSON.stringify(data.parsed_data, null, 2);
                 parsedOutput.style.display = 'block';
             }
+        });
+        // Autocomplete
+        $(function() {
+            $(".autocomplete").each(function() {
+                var fieldName = $(this).attr('name');
+                $(this).autocomplete({
+                    source: function(request, response) {
+                        $.ajax({
+                            url: "{% url 'autocomplete' %}",
+                            dataType: "json",
+                            data: {
+                                term: request.term,
+                                field: fieldName
+                            },
+                            success: function(data) {
+                                response(data);
+                            }
+                        });
+                    },
+                    minLength: 1
+                });
+            });
         });
     });
 </script>
