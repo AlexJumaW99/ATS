@@ -11,7 +11,11 @@
         The Jumaiya Applicant Tracking System helps you find the best candidates, faster. Parse resumes, track applicants, and make smarter hiring decisions.
       </p>
       <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-        <a href="#" class="btn btn-primary btn-lg px-4 me-md-2">Get started</a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'parser_home' %}" class="btn btn-primary btn-lg px-4 me-md-2">Get started</a>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-4 me-md-2">Get started</a>
+        {% endif %}
       </div>
     </div>
     <div class="col-md-6">
