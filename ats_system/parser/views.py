@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Candidate
 from .gemini_parser import process_resume
+from django.http import JsonResponse
 
 @login_required
 def parser_home(request):
@@ -27,7 +28,8 @@ def upload_resume(request):
             parsed_data, raw_csv = process_resume(resume_file)
             if parsed_data:
                 all_parsed_data.extend(parsed_data)
-                raw_csv_outputs.append(raw_csv)
+                if raw_csv:
+                    raw_csv_outputs.append(raw_csv)
                 for item in parsed_data:
                     Candidate.objects.create(
                         first_name=item.get('first_name'),
@@ -38,6 +40,8 @@ def upload_resume(request):
                     )
         if raw_csv_outputs:
             csv_output = "\n\n".join(raw_csv_outputs)
+
+        return JsonResponse({'csv_output': csv_output})
 
     candidates = Candidate.objects.all()
     return render(request, 'parser/parser_home.html', {'candidates': candidates, 'csv_output': csv_output})

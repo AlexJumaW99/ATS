@@ -32,7 +32,7 @@
                 <h1 class="mt-4">Upload Resumes</h1>
             </nav>
             <div class="container-fluid">
-                <form action="{% url 'upload_resume' %}" method="post" enctype="multipart/form-data">
+                <form id="upload-form" action="{% url 'upload_resume' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="mb-3">
                         <label for="resume-upload" class="form-label">Select one or more files (PDF, JPEG, PNG, DOCX):</label>
@@ -40,6 +40,17 @@
                     </div>
                     <button type="submit" class="btn btn-primary">Upload</button>
                 </form>
+
+                <div id="loading-animation" style="display: none;" class="mt-4">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+
+                <div id="gemini-output" class="mt-4" style="display: none;">
+                    <h3>Gemini CSV Output:</h3>
+                    <pre><code></code></pre>
+                </div>
 
                 {% if csv_output %}
                 <div class="mt-4">
@@ -205,6 +216,34 @@
             dashboardContent.style.display = 'none';
             uploadResumeContent.style.display = 'none';
             candidatesContent.style.display = 'block';
+        });
+
+        const uploadForm = document.getElementById('upload-form');
+        const loadingAnimation = document.getElementById('loading-animation');
+        const geminiOutput = document.getElementById('gemini-output');
+        const geminiOutputCode = geminiOutput.querySelector('code');
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loadingAnimation.style.display = 'block';
+            geminiOutput.style.display = 'none';
+
+            const formData = new FormData(uploadForm);
+            const response = await fetch(uploadForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+
+            const data = await response.json();
+
+            loadingAnimation.style.display = 'none';
+            if (data.csv_output) {
+                geminiOutputCode.textContent = data.csv_output;
+                geminiOutput.style.display = 'block';
+            }
         });
     });
 </script>
