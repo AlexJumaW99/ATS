@@ -32,13 +32,21 @@
                 <h1 class="mt-4">Upload Resumes</h1>
             </nav>
             <div class="container-fluid">
-                <form action="/upload" method="post" enctype="multipart/form-data">
+                <form action="{% url 'upload_resume' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
                     <div class="mb-3">
                         <label for="resume-upload" class="form-label">Select one or more files (PDF, JPEG, PNG, DOCX):</label>
                         <input class="form-control" type="file" id="resume-upload" name="resumes" multiple accept=".pdf,.jpeg,.jpg,.png,.docx">
                     </div>
                     <button type="submit" class="btn btn-primary">Upload</button>
                 </form>
+
+                {% if csv_output %}
+                <div class="mt-4">
+                    <h3>Gemini CSV Output:</h3>
+                    <pre><code>{{ csv_output }}</code></pre>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -54,31 +62,25 @@
                             <th scope="col">First Name</th>
                             <th scope="col">Last Name</th>
                             <th scope="col">DOB</th>
+                            <th scope="col">Degree</th>
                             <th scope="col">Resume File Name</th>
                         </tr>
                     </thead>
                     <tbody>
+                        {% for candidate in candidates %}
                         <tr>
-                            <th scope="row">1</th>
-                            <td>John</td>
-                            <td>Doe</td>
-                            <td>1990-01-15</td>
-                            <td>john_doe_resume.pdf</td>
+                            <th scope="row">{{ candidate.id }}</th>
+                            <td>{{ candidate.first_name|default_if_none:"" }}</td>
+                            <td>{{ candidate.last_name|default_if_none:"" }}</td>
+                            <td>{{ candidate.date_of_birth|default_if_none:"" }}</td>
+                            <td>{{ candidate.degree|default_if_none:"" }}</td>
+                            <td>{{ candidate.resume_file_name }}</td>
                         </tr>
+                        {% empty %}
                         <tr>
-                            <th scope="row">2</th>
-                            <td>Jane</td>
-                            <td>Smith</td>
-                            <td>1992-05-20</td>
-                            <td>jane_smith_cv.docx</td>
+                            <td colspan="6">No candidates found.</td>
                         </tr>
-                        <tr>
-                            <th scope="row">3</th>
-                            <td>Peter</td>
-                            <td>Jones</td>
-                            <td>1988-11-30</td>
-                            <td>peter_jones_cv.pdf</td>
-                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
