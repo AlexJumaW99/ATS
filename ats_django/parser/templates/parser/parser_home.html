@@ -3,258 +3,142 @@
 {% block title %}Resume Parser - Jumaiya ATS{% endblock %}
 
 {% block content %}
-<div id="wrapper">
-    <button class="btn btn-primary" id="menu-open" style="display: none;">&rarr;</button>
-    <div class="bg-dark border-right" id="sidebar-wrapper">
-        <div class="sidebar-heading">
-            <span>Parser Menu</span>
-            <button class="btn btn-dark float-end" id="menu-close">&larr;</button>
+<div id="wrapper" class="flex">
+    <div id="sidebar-wrapper" class="bg-gray-800 text-white w-64 min-h-screen fixed transition-transform duration-300 ease-in-out z-30">
+        <div class="px-4 py-5 flex justify-between items-center border-b border-gray-700">
+            <span class="text-xl font-semibold">Parser Menu</span>
+            <button id="menu-close" class="text-gray-400 hover:text-white">&larr;</button>
         </div>
-        <div class="list-group list-group-flush">
-            <a href="#" class="list-group-item list-group-item-action bg-dark text-white" id="dashboard-link">Dashboard</a>
-            <a href="#" class="list-group-item list-group-item-action bg-dark text-white" id="upload-resume-link">Upload Resume</a>
-            <a href="#" class="list-group-item list-group-item-action bg-dark text-white" id="candidates-link">Candidates</a>
-            <a href="#" class="list-group-item list-group-item-action bg-dark text-white">Settings</a>
+        <div class="flex flex-col">
+            <a href="#" id="dashboard-link" class="px-4 py-3 text-sm font-medium hover:bg-gray-700 transition-colors duration-200">Dashboard</a>
+            <a href="#" id="upload-resume-link" class="px-4 py-3 text-sm font-medium hover:bg-gray-700 transition-colors duration-200">Upload Resume</a>
+            <a href="#" id="candidates-link" class="px-4 py-3 text-sm font-medium hover:bg-gray-700 transition-colors duration-200">Candidates</a>
+            <a href="#" class="px-4 py-3 text-sm font-medium hover:bg-gray-700 transition-colors duration-200">Settings</a>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="w-full text-left px-4 py-3 text-sm font-medium hover:bg-gray-700 transition-colors duration-200 focus:outline-none">
+                    Logout
+                </button>
+            </form>
         </div>
     </div>
-    <div id="page-content-wrapper">
+
+    <div id="page-content-wrapper" class="flex-1 ml-64 transition-all duration-300 ease-in-out">
+        <button id="menu-open" class="fixed top-1/2 left-2 transform -translate-y-1/2 bg-indigo-600 text-white px-3 py-2 rounded-md shadow-lg z-40 hidden">&rarr;</button>
+        
         <div id="dashboard-content">
-            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-                <h1 class="mt-4">Welcome to the Parser!</h1>
+            <nav class="bg-white shadow-md p-4">
+                <h1 class="text-3xl font-semibold text-gray-800">Welcome to the Parser!</h1>
             </nav>
-            <div class="container-fluid">
-                <p>This is where the main content of your resume parser will go.</p>
+            <div class="p-6">
+                <p class="text-gray-600">This is where the main content of your resume parser will go.</p>
             </div>
         </div>
 
         <div id="upload-resume-content" style="display: none;">
-            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-                <h1 class="mt-4">Upload Resumes</h1>
+            <nav class="bg-white shadow-md p-4">
+                <h1 class="text-3xl font-semibold text-gray-800">Upload Resumes</h1>
             </nav>
-            <div class="container-fluid">
-                <form id="upload-form" action="{% url 'upload_resume' %}" method="post" enctype="multipart/form-data">
+            <div class="p-6">
+                <form id="upload-form" action="{% url 'upload_resume' %}" method="post" enctype="multipart/form-data" class="bg-white p-6 rounded-lg shadow">
                     {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="resume-upload" class="form-label">Select one or more files (PDF, JPEG, PNG, DOCX):</label>
-                        <input class="form-control" type="file" id="resume-upload" name="resumes" multiple accept=".pdf,.jpeg,.jpg,.png,.docx">
+                    <div class="mb-4">
+                        <label for="resume-upload" class="block text-sm font-medium text-gray-700">Select one or more files (PDF, JPEG, PNG, DOCX):</label>
+                        <input class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none" type="file" id="resume-upload" name="resumes" multiple accept=".pdf,.jpeg,.jpg,.png,.docx">
                     </div>
-                    <button type="submit" class="btn btn-primary">Upload</button>
+                    <button type="submit" class="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Upload</button>
                 </form>
 
-                <div id="loading-animation" style="display: none;" class="mt-4">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div id="gemini-output" class="mt-4" style="display: none;">
-                            <h3>Gemini Raw Text Response:</h3>
-                            <pre><code></code></pre>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div id="parsed-output" class="mt-4" style="display: none;">
-                            <h3>Parsed JSON Output:</h3>
-                            <pre><code></code></pre>
-                        </div>
-                    </div>
+                <div id="loading-animation" style="display: none;" class="mt-6 flex justify-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
                 </div>
 
-                {% if csv_output %}
-                <div class="mt-4">
-                    <h3>Gemini JSON Output:</h3>
-                    <pre><code>{{ csv_output }}</code></pre>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div id="gemini-output" style="display: none;">
+                        <h3 class="text-lg font-semibold text-gray-800">Gemini Raw Text Response:</h3>
+                        <pre class="bg-gray-100 p-4 rounded-lg mt-2 text-sm overflow-auto"><code></code></pre>
+                    </div>
+                    <div id="parsed-output" style="display: none;">
+                        <h3 class="text-lg font-semibold text-gray-800">Parsed JSON Output:</h3>
+                        <pre class="bg-gray-100 p-4 rounded-lg mt-2 text-sm overflow-auto"><code></code></pre>
+                    </div>
                 </div>
-                {% endif %}
             </div>
         </div>
 
         <div id="candidates-content" style="display: none;">
-            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-                <h1 class="mt-4">Candidates</h1>
+            <nav class="bg-white shadow-md p-4">
+                <h1 class="text-3xl font-semibold text-gray-800">Candidates</h1>
             </nav>
-            <div class="container-fluid">
-                <form id="filter-form" method="get" class="mb-4">
-                    <div class="row g-3">
-                        <div class="col-md-2">
-                            <input type="text" name="first_name" class="form-control autocomplete" placeholder="First Name" value="{{ request.GET.first_name }}">
+            <div class="p-6">
+                <form id="filter-form" method="get" class="mb-6 bg-white p-4 rounded-lg shadow">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <input type="text" name="first_name" class="form-input autocomplete w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="First Name" value="{{ request.GET.first_name }}">
+                        <input type="text" name="last_name" class="form-input autocomplete w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Last Name" value="{{ request.GET.last_name }}">
+                        <input type="text" name="address" class="form-input autocomplete w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Address" value="{{ request.GET.address }}">
+                        <div>
+                            <label for="min_dob" class="text-sm text-gray-600">Min DOB</label>
+                            <input type="date" id="min_dob" name="min_dob" class="form-input w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" value="{{ request.GET.min_dob }}">
                         </div>
-                        <div class="col-md-2">
-                            <input type="text" name="last_name" class="form-control autocomplete" placeholder="Last Name" value="{{ request.GET.last_name }}">
+                        <div>
+                            <label for="max_dob" class="text-sm text-gray-600">Max DOB</label>
+                            <input type="date" id="max_dob" name="max_dob" class="form-input w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" value="{{ request.GET.max_dob }}">
                         </div>
-                        <div class="col-md-2">
-                            <input type="text" name="address" class="form-control autocomplete" placeholder="Address" value="{{ request.GET.address }}">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="min_dob" class="form-label">Min DOB</label>
-                            <input type="date" id="min_dob" name="min_dob" class="form-control" value="{{ request.GET.min_dob }}">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="max_dob" class="form-label">Max DOB</label>
-                            <input type="date" id="max_dob" name="max_dob" class="form-control" value="{{ request.GET.max_dob }}">
-                        </div>
-                        <div class="col-md-2">
-                            <input type="text" name="degree" class="form-control autocomplete" placeholder="Degree" value="{{ request.GET.degree }}">
-                        </div>
-                        <div class="col-md-2">
-                            <input type="text" name="degree_school" class="form-control autocomplete" placeholder="Degree School" value="{{ request.GET.degree_school }}">
-                        </div>
-                        <div class="col-md-2">
-                            <input type="text" name="diploma" class="form-control autocomplete" placeholder="Diploma" value="{{ request.GET.diploma }}">
-                        </div>
-                        <div class="col-md-2">
-                            <input type="text" name="diploma_school" class="form-control autocomplete" placeholder="Diploma School" value="{{ request.GET.diploma_school }}">
-                        </div>
-                        <div class="col-md-2">
-                            <input type="text" name="resume_file_name" class="form-control autocomplete" placeholder="Resume File" value="{{ request.GET.resume_file_name }}">
-                        </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary">Filter</button>
-                            <a href="{% url 'parser_home' %}" class="btn btn-secondary">Clear</a>
+                        <input type="text" name="degree" class="form-input autocomplete w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Degree" value="{{ request.GET.degree }}">
+                        <input type="text" name="degree_school" class="form-input autocomplete w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Degree School" value="{{ request.GET.degree_school }}">
+                        <input type="text" name="diploma" class="form-input autocomplete w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Diploma" value="{{ request.GET.diploma }}">
+                        <input type="text" name="diploma_school" class="form-input autocomplete w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Diploma School" value="{{ request.GET.diploma_school }}">
+                        <input type="text" name="resume_file_name" class="form-input autocomplete w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Resume File" value="{{ request.GET.resume_file_name }}">
+                        <div class="flex items-end col-span-full md:col-span-1">
+                            <button type="submit" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500">Filter</button>
+                            <a href="{% url 'parser_home' %}" class="ml-2 rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-300">Clear</a>
                         </div>
                     </div>
                 </form>
 
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th scope="col"><a href="?sort_by=id&order={% if request.GET.sort_by == 'id' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">c_id</a></th>
-                            <th scope="col"><a href="?sort_by=first_name&order={% if request.GET.sort_by == 'first_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">First Name</a></th>
-                            <th scope="col"><a href="?sort_by=last_name&order={% if request.GET.sort_by == 'last_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Last Name</a></th>
-                            <th scope="col"><a href="?sort_by=address&order={% if request.GET.sort_by == 'address' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Address</a></th>
-                            <th scope="col"><a href="?sort_by=date_of_birth&order={% if request.GET.sort_by == 'date_of_birth' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">DOB</a></th>
-                            <th scope="col"><a href="?sort_by=degree&order={% if request.GET.sort_by == 'degree' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Degree</a></th>
-                            <th scope="col"><a href="?sort_by=degree_school&order={% if request.GET.sort_by == 'degree_school' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Degree School</a></th>
-                            <th scope="col"><a href="?sort_by=diploma&order={% if request.GET.sort_by == 'diploma' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Diploma</a></th>
-                            <th scope="col"><a href="?sort_by=diploma_school&order={% if request.GET.sort_by == 'diploma_school' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Diploma School</a></th>
-                            <th scope="col"><a href="?sort_by=resume_file_name&order={% if request.GET.sort_by == 'resume_file_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Resume File Name</a></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for candidate in candidates %}
-                        <tr>
-                            <th scope="row">{{ candidate.id }}</th>
-                            <td>{{ candidate.first_name|default_if_none:"" }}</td>
-                            <td>{{ candidate.last_name|default_if_none:"" }}</td>
-                            <td>{{ candidate.address|default_if_none:"" }}</td>
-                            <td>{{ candidate.date_of_birth|default_if_none:"" }}</td>
-                            <td>{{ candidate.degree|default_if_none:"" }}</td>
-                            <td>{{ candidate.degree_school|default_if_none:"" }}</td>
-                            <td>{{ candidate.diploma|default_if_none:"" }}</td>
-                            <td>{{ candidate.diploma_school|default_if_none:"" }}</td>
-                            <td>{{ candidate.resume_file_name }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="10">No candidates found.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto bg-white rounded-lg shadow">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><a href="?sort_by=id&order={% if request.GET.sort_by == 'id' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">c_id</a></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><a href="?sort_by=first_name&order={% if request.GET.sort_by == 'first_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">First Name</a></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><a href="?sort_by=last_name&order={% if request.GET.sort_by == 'last_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Last Name</a></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><a href="?sort_by=address&order={% if request.GET.sort_by == 'address' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Address</a></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><a href="?sort_by=date_of_birth&order={% if request.GET.sort_by == 'date_of_birth' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">DOB</a></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><a href="?sort_by=degree&order={% if request.GET.sort_by == 'degree' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Degree</a></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><a href="?sort_by=degree_school&order={% if request.GET.sort_by == 'degree_school' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Degree School</a></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><a href="?sort_by=diploma&order={% if request.GET.sort_by == 'diploma' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Diploma</a></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><a href="?sort_by=diploma_school&order={% if request.GET.sort_by == 'diploma_school' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Diploma School</a></th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><a href="?sort_by=resume_file_name&order={% if request.GET.sort_by == 'resume_file_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Resume File Name</a></th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for candidate in candidates %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ candidate.id }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ candidate.first_name|default_if_none:"" }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ candidate.last_name|default_if_none:"" }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ candidate.address|default_if_none:"" }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ candidate.date_of_birth|default_if_none:"" }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ candidate.degree|default_if_none:"" }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ candidate.degree_school|default_if_none:"" }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ candidate.diploma|default_if_none:"" }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ candidate.diploma_school|default_if_none:"" }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ candidate.resume_file_name }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="10" class="px-6 py-4 text-center text-sm text-gray-500">No candidates found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    body {
-        overflow-x: hidden;
-    }
-
-    #wrapper {
-        display: flex;
-        transition: all 0.3s ease;
-    }
-
-    #sidebar-wrapper {
-        height: calc(100vh - 56px);
-        top: 56px;
-        width: 15rem;
-        position: fixed;
-        left: 0;
-        z-index: 1030;
-        transition: transform 0.3s ease;
-        transform: translateX(0);
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    #wrapper.toggled #sidebar-wrapper {
-        transform: translateX(-15rem);
-    }
-
-    #page-content-wrapper {
-        width: 100%;
-        padding-left: 15rem; /* Same as sidebar width */
-        transition: padding-left 0.3s ease;
-    }
-
-    #wrapper.toggled #page-content-wrapper {
-        padding-left: 0;
-    }
-
-    #sidebar-wrapper .sidebar-heading {
-        padding: 0.875rem 1.25rem;
-        font-size: 1.2rem;
-        color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    #menu-open {
-        position: fixed;
-        left: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 1031;
-    }
-
-    .list-group-item-action.bg-dark.text-white {
-        transition: all 0.2s ease-in-out;
-    }
-
-    .list-group-item-action.bg-dark.text-white:hover {
-        background-color: #343a40 !important;
-        color: white !important;
-        box-shadow: 0 0 10px #ffd700;
-        transform: scale(1.02);
-    }
-    .ui-autocomplete {
-        position: absolute;
-        z-index: 1000;
-        cursor: default;
-        padding: 0;
-        margin-top: 2px;
-        list-style: none;
-        background-color: #ffffff;
-        border: 1px solid #ccc;
-        -webkit-border-radius: 5px;
-        -moz-border-radius: 5px;
-        border-radius: 5px;
-        -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-        -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    }
-    .ui-menu-item > a.ui-corner-all {
-        display: block;
-        padding: 3px 15px;
-        clear: both;
-        font-weight: normal;
-        line-height: 18px;
-        color: #555555;
-        white-space: nowrap;
-    }
-    .ui-state-hover, .ui-state-active {
-        color: #ffffff;
-        text-decoration: none;
-        background-color: #0088cc;
-        border-radius: 0px;
-        -webkit-border-radius: 0px;
-        -moz-border-radius: 0px;
-        background-image: none;
-    }
-</style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui/1.12.1/jquery-ui.min.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui/1.12.1/jquery-ui.min.js"></script>
@@ -262,7 +146,9 @@
     document.addEventListener('DOMContentLoaded', () => {
         const menuClose = document.getElementById('menu-close');
         const menuOpen = document.getElementById('menu-open');
-        const wrapper = document.getElementById('wrapper');
+        const sidebar = document.getElementById('sidebar-wrapper');
+        const pageContent = document.getElementById('page-content-wrapper');
+        
         const isSidebarToggled = localStorage.getItem('isSidebarToggled') === 'true';
 
         const dashboardLink = document.getElementById('dashboard-link');
@@ -273,7 +159,6 @@
         const uploadResumeContent = document.getElementById('upload-resume-content');
         const candidatesContent = document.getElementById('candidates-content');
 
-        // Function to show a specific section and hide others
         const showSection = (sectionToShow) => {
             [dashboardContent, uploadResumeContent, candidatesContent].forEach(section => {
                 section.style.display = 'none';
@@ -282,53 +167,50 @@
             localStorage.setItem('activeSection', sectionToShow.id);
         };
 
-        // Check local storage for the active section on page load
         const activeSectionId = localStorage.getItem('activeSection');
         if (activeSectionId) {
             const sectionToShow = document.getElementById(activeSectionId);
             if (sectionToShow) {
                 showSection(sectionToShow);
             } else {
-                showSection(dashboardContent); // Default to dashboard if ID is invalid
+                showSection(dashboardContent);
             }
         } else {
-            showSection(dashboardContent); // Default to dashboard
+            showSection(dashboardContent);
         }
 
-
+        const toggleSidebar = (isToggled) => {
+            if (isToggled) {
+                sidebar.style.transform = 'translateX(-100%)';
+                pageContent.style.marginLeft = '0';
+                menuOpen.style.display = 'block';
+            } else {
+                sidebar.style.transform = 'translateX(0)';
+                pageContent.style.marginLeft = '16rem'; // w-64
+                menuOpen.style.display = 'none';
+            }
+            localStorage.setItem('isSidebarToggled', isToggled);
+        };
+        
         if (isSidebarToggled) {
-            wrapper.classList.add('toggled');
-            menuOpen.style.display = 'block';
+            toggleSidebar(true);
+        } else {
+            toggleSidebar(false);
         }
 
         menuClose.addEventListener('click', (e) => {
             e.preventDefault();
-            wrapper.classList.add('toggled');
-            localStorage.setItem('isSidebarToggled', 'true');
-            menuOpen.style.display = 'block';
+            toggleSidebar(true);
         });
 
         menuOpen.addEventListener('click', (e) => {
             e.preventDefault();
-            wrapper.classList.remove('toggled');
-            localStorage.setItem('isSidebarToggled', 'false');
-            menuOpen.style.display = 'none';
+            toggleSidebar(false);
         });
 
-        dashboardLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            showSection(dashboardContent);
-        });
-
-        uploadResumeLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            showSection(uploadResumeContent);
-        });
-
-        candidatesLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            showSection(candidatesContent);
-        });
+        dashboardLink.addEventListener('click', (e) => { e.preventDefault(); showSection(dashboardContent); });
+        uploadResumeLink.addEventListener('click', (e) => { e.preventDefault(); showSection(uploadResumeContent); });
+        candidatesLink.addEventListener('click', (e) => { e.preventDefault(); showSection(candidatesContent); });
 
         const uploadForm = document.getElementById('upload-form');
         const loadingAnimation = document.getElementById('loading-animation');
@@ -339,7 +221,7 @@
 
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            loadingAnimation.style.display = 'block';
+            loadingAnimation.style.display = 'flex';
             geminiOutput.style.display = 'none';
             parsedOutput.style.display = 'none';
 
@@ -347,13 +229,10 @@
             const response = await fetch(uploadForm.action, {
                 method: 'POST',
                 body: formData,
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'
-                }
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
             });
 
             const data = await response.json();
-
             loadingAnimation.style.display = 'none';
             if (data.csv_output) {
                 geminiOutputCode.textContent = data.csv_output;
@@ -364,6 +243,7 @@
                 parsedOutput.style.display = 'block';
             }
         });
+
         // Autocomplete
         $(function() {
             $(".autocomplete").each(function() {
@@ -373,13 +253,8 @@
                         $.ajax({
                             url: "{% url 'autocomplete' %}",
                             dataType: "json",
-                            data: {
-                                term: request.term,
-                                field: fieldName
-                            },
-                            success: function(data) {
-                                response(data);
-                            }
+                            data: { term: request.term, field: fieldName },
+                            success: function(data) { response(data); }
                         });
                     },
                     minLength: 1

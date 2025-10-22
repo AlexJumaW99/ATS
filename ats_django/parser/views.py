@@ -83,9 +83,16 @@ def upload_resume(request):
     return render(request, 'parser/parser_home.html', {'candidates': candidates, 'csv_output': csv_output})
 
 def autocomplete(request):
-    if 'term' in request.GET:
+    if 'term' in request.GET and 'field' in request.GET:
         field = request.GET.get('field')
-        qs = Candidate.objects.filter(**{f'{field}__icontains': request.GET.get('term')})
+        term = request.GET.get('term')
+
+        # Ensure the field is a valid field on the Candidate model to prevent security issues
+        valid_fields = [f.name for f in Candidate._meta.get_fields()]
+        if field not in valid_fields:
+            return JsonResponse([], safe=False)
+
+        qs = Candidate.objects.filter(**{f'{field}__icontains': term})
         values = list(qs.values_list(field, flat=True).distinct())
         return JsonResponse(values, safe=False)
     return JsonResponse([], safe=False)
