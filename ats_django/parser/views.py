@@ -38,11 +38,26 @@ def parser_home(request):
     # Sorting
     sort_by = request.GET.get('sort_by', 'id')
     order = request.GET.get('order', 'asc')
-    if order == 'desc':
-        sort_by = f'-{sort_by}'
-    candidates = candidates.order_by(sort_by)
 
-    return render(request, 'parser/parser_home.html', {'candidates': candidates})
+    # Preserve filters when sorting
+    query_params = request.GET.copy()
+    if 'sort_by' in query_params:
+        del query_params['sort_by']
+    if 'order' in query_params:
+        del query_params['order']
+
+    if order == 'desc':
+        sort_by_param = f'-{sort_by}'
+    else:
+        sort_by_param = sort_by
+    candidates = candidates.order_by(sort_by_param)
+
+    context = {
+        'candidates': candidates,
+        'query_params': query_params.urlencode(),
+    }
+
+    return render(request, 'parser/parser_home.html', context)
 
 @login_required
 def upload_resume(request):

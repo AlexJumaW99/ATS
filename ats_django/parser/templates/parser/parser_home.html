@@ -249,70 +249,91 @@
         </div>
 
         <div id="candidates-content" style="display: none;">
-            <h1 class="text-3xl font-semibold text-white">Candidates</h1>
-            <div class="mt-6">
-                <form id="filter-form" method="get" class="mb-6 bg-gray-800 p-4 rounded-lg shadow-md">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <input type="text" name="first_name" class="form-input autocomplete w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" placeholder="First Name" value="{{ request.GET.first_name }}">
-                        <input type="text" name="last_name" class="form-input autocomplete w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" placeholder="Last Name" value="{{ request.GET.last_name }}">
-                        <input type="text" name="address" class="form-input autocomplete w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" placeholder="Address" value="{{ request.GET.address }}">
-                        <div>
-                            <label for="min_dob" class="text-sm text-gray-400">Min DOB</label>
-                            <input type="date" id="min_dob" name="min_dob" class="form-input w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" value="{{ request.GET.min_dob }}">
-                        </div>
-                        <div>
-                            <label for="max_dob" class="text-sm text-gray-400">Max DOB</label>
-                            <input type="date" id="max_dob" name="max_dob" class="form-input w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" value="{{ request.GET.max_dob }}">
-                        </div>
-                        <input type="text" name="degree" class="form-input autocomplete w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" placeholder="Degree" value="{{ request.GET.degree }}">
-                        <input type="text" name="degree_school" class="form-input autocomplete w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" placeholder="Degree School" value="{{ request.GET.degree_school }}">
-                        <input type="text" name="diploma" class="form-input autocomplete w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" placeholder="Diploma" value="{{ request.GET.diploma }}">
-                        <input type="text" name="diploma_school" class="form-input autocomplete w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" placeholder="Diploma School" value="{{ request.GET.diploma_school }}">
-                        <input type="text" name="resume_file_name" class="form-input autocomplete w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" placeholder="Resume File" value="{{ request.GET.resume_file_name }}">
-                        <div class="flex items-end col-span-full md:col-span-1">
-                            <button type="submit" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500">Filter</button>
-                            <a href="{% url 'parser_home' %}" class="ml-2 rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-500">Clear</a>
+            <div class="sm:flex sm:items-center">
+                <div class="sm:flex-auto">
+                  <h1 class="text-3xl font-semibold text-white">Candidates</h1>
+                </div>
+                <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                    <div class="relative isolate z-50 shadow-sm">
+                        <button popovertarget="filters-popover" class="inline-flex items-center gap-x-1 text-sm/6 font-semibold text-white rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                          <span>Filters</span>
+                          <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.59L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clip-rule="evenodd" />
+                          </svg>
+                        </button>
+                        <el-popover id="filters-popover" popover class="absolute right-0 z-10 mt-2 w-screen max-w-md transform px-4 sm:px-0 transition transition-discrete backdrop:bg-transparent open:block data-closed:-translate-y-1 data-closed:opacity-0 data-enter:duration-200 data-enter:ease-out data-leave:duration-150 data-leave:ease-in">
+                            <div class="overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5">
+                                <div class="relative grid gap-8 bg-gray-800 p-7">
+                                    <form id="filter-form" method="get" class="space-y-4">
+                                        <input type="text" name="first_name" class="form-input autocomplete w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" placeholder="First Name" value="{{ request.GET.first_name }}">
+                                        <input type="text" name="last_name" class="form-input autocomplete w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" placeholder="Last Name" value="{{ request.GET.last_name }}">
+                                        <input type="text" name="address" class="form-input autocomplete w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" placeholder="Address" value="{{ request.GET.address }}">
+                                        <div>
+                                            <label for="min_dob" class="text-sm text-gray-400">Min DOB</label>
+                                            <input type="date" id="min_dob" name="min_dob" class="form-input w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" value="{{ request.GET.min_dob }}">
+                                        </div>
+                                        <div>
+                                            <label for="max_dob" class="text-sm text-gray-400">Max DOB</label>
+                                            <input type="date" id="max_dob" name="max_dob" class="form-input w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" value="{{ request.GET.max_dob }}">
+                                        </div>
+                                        <input type="text" name="degree" class="form-input autocomplete w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" placeholder="Degree" value="{{ request.GET.degree }}">
+                                        <input type="text" name="degree_school" class="form-input autocomplete w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" placeholder="Degree School" value="{{ request.GET.degree_school }}">
+                                        <input type="text" name="diploma" class="form-input autocomplete w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" placeholder="Diploma" value="{{ request.GET.diploma }}">
+                                        <input type="text" name="diploma_school" class="form-input autocomplete w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" placeholder="Diploma School" value="{{ request.GET.diploma_school }}">
+                                        <input type="text" name="resume_file_name" class="form-input autocomplete w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" placeholder="Resume File" value="{{ request.GET.resume_file_name }}">
+                                        <div class="flex items-center justify-end">
+                                            <button type="submit" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500">Filter</button>
+                                            <a href="{% url 'parser_home' %}" class="ml-2 rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-500">Clear</a>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </el-popover>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 flow-root">
+                <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                    <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                            <table class="min-w-full divide-y divide-white/15">
+                                <thead class="bg-gray-900">
+                                    <tr class="divide-x divide-white/10">
+                                        <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-6"><a href="?{{ query_params }}&sort_by=id&order={% if request.GET.sort_by == 'id' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">c_id</a></th>
+                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white"><a href="?{{ query_params }}&sort_by=first_name&order={% if request.GET.sort_by == 'first_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">First Name</a></th>
+                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white"><a href="?{{ query_params }}&sort_by=last_name&order={% if request.GET.sort_by == 'last_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Last Name</a></th>
+                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white"><a href="?{{ query_params }}&sort_by=address&order={% if request.GET.sort_by == 'address' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Address</a></th>
+                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white"><a href="?{{ query_params }}&sort_by=date_of_birth&order={% if request.GET.sort_by == 'date_of_birth' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">DOB</a></th>
+                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white"><a href="?{{ query_params }}&sort_by=degree&order={% if request.GET.sort_by == 'degree' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Degree</a></th>
+                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white"><a href="?{{ query_params }}&sort_by=degree_school&order={% if request.GET.sort_by == 'degree_school' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Degree School</a></th>
+                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white"><a href="?{{ query_params }}&sort_by=diploma&order={% if request.GET.sort_by == 'diploma' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Diploma</a></th>
+                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white"><a href="?{{ query_params }}&sort_by=diploma_school&order={% if request.GET.sort_by == 'diploma_school' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Diploma School</a></th>
+                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white"><a href="?{{ query_params }}&sort_by=resume_file_name&order={% if request.GET.sort_by == 'resume_file_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Resume File Name</a></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/10 bg-gray-900">
+                                    {% for candidate in candidates %}
+                                    <tr class="divide-x divide-white/10 hover:bg-gray-700">
+                                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">{{ candidate.id }}</td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ candidate.first_name|default_if_none:"" }}</td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ candidate.last_name|default_if_none:"" }}</td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ candidate.address|default_if_none:"" }}</td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ candidate.date_of_birth|default_if_none:"" }}</td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ candidate.degree|default_if_none:"" }}</td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ candidate.degree_school|default_if_none:"" }}</td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ candidate.diploma|default_if_none:"" }}</td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ candidate.diploma_school|default_if_none:"" }}</td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ candidate.resume_file_name }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="10" class="px-6 py-4 text-center text-sm text-gray-500">No candidates found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                </form>
-
-                <div class="overflow-x-auto bg-gray-800 rounded-lg shadow-md">
-                    <table class="min-w-full divide-y divide-white/15">
-                        <thead class="bg-gray-900">
-                            <tr class="divide-x divide-white/10">
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"><a href="?sort_by=id&order={% if request.GET.sort_by == 'id' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">c_id</a></th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"><a href="?sort_by=first_name&order={% if request.GET.sort_by == 'first_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">First Name</a></th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"><a href="?sort_by=last_name&order={% if request.GET.sort_by == 'last_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Last Name</a></th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"><a href="?sort_by=address&order={% if request.GET.sort_by == 'address' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Address</a></th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"><a href="?sort_by=date_of_birth&order={% if request.GET.sort_by == 'date_of_birth' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">DOB</a></th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"><a href="?sort_by=degree&order={% if request.GET.sort_by == 'degree' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Degree</a></th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"><a href="?sort_by=degree_school&order={% if request.GET.sort_by == 'degree_school' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Degree School</a></th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"><a href="?sort_by=diploma&order={% if request.GET.sort_by == 'diploma' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Diploma</a></th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"><a href="?sort_by=diploma_school&order={% if request.GET.sort_by == 'diploma_school' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Diploma School</a></th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"><a href="?sort_by=resume_file_name&order={% if request.GET.sort_by == 'resume_file_name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}">Resume File Name</a></th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-white/10 bg-gray-900">
-                            {% for candidate in candidates %}
-                            <tr class="divide-x divide-white/10 hover:bg-gray-700">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{{ candidate.id }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{{ candidate.first_name|default_if_none:"" }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{{ candidate.last_name|default_if_none:"" }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{{ candidate.address|default_if_none:"" }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{{ candidate.date_of_birth|default_if_none:"" }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{{ candidate.degree|default_if_none:"" }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{{ candidate.degree_school|default_if_none:"" }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{{ candidate.diploma|default_if_none:"" }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{{ candidate.diploma_school|default_if_none:"" }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{{ candidate.resume_file_name }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="10" class="px-6 py-4 text-center text-sm text-gray-500">No candidates found.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
@@ -323,6 +344,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui/1.12.1/jquery-ui.min.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui/1.12.1/jquery-ui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
