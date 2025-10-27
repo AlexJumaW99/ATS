@@ -1,13 +1,20 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Job(models.Model):
     title = models.CharField(max_length=255)
     company = models.CharField(max_length=255)
-    location = models.CharField(max_length=255)
-    job_type = models.CharField(max_length=50)
-    salary_range = models.CharField(max_length=100)
+    country = models.CharField(max_length=255, default='Canada')
+    province = models.CharField(max_length=255)
+    city = models.CharField(max_length=255)
+    min_salary = models.IntegerField()
+    max_salary = models.IntegerField()
+    opening_date = models.DateTimeField(default=timezone.now)
     closing_date = models.DateField()
+    description = models.TextField()
+    job_type = models.CharField(max_length=50) # Changed from 'timing' to 'job_type' to match existing model
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='jobs')
 
     def __str__(self):
         return self.title

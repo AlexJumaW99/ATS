@@ -35,6 +35,12 @@
                     </a>
                   </li>
                   <li>
+                    <a href="#" id="jobs-link" class="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-indigo-100 hover:bg-indigo-950/25 hover:text-white">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 shrink-0 text-indigo-100 group-hover:text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.07a2.25 2.25 0 01-2.25 2.25H5.625a2.25 2.25 0 01-2.25-2.25v-4.07a2.25 2.25 0 01.928-1.764l6.096-3.484a2.25 2.25 0 012.296 0l6.096 3.484a2.25 2.25 0 01.928 1.764z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 15.75a3 3 0 01-6 0" /></svg>
+                      Jobs
+                    </a>
+                  </li>
+                  <li>
                     <a href="#" id="upload-resume-link" class="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-indigo-100 hover:bg-indigo-950/25 hover:text-white">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 shrink-0 text-indigo-100 group-hover:text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
                       Upload Resume
@@ -106,6 +112,12 @@
                     </svg>
                     Dashboard
                   </a>
+                </li>
+                <li>
+                    <a href="#" id="jobs-link-desktop" class="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-indigo-100 hover:bg-indigo-950/25 hover:text-white">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 shrink-0 text-indigo-100 group-hover:text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.07a2.25 2.25 0 01-2.25 2.25H5.625a2.25 2.25 0 01-2.25-2.25v-4.07a2.25 2.25 0 01.928-1.764l6.096-3.484a2.25 2.25 0 012.296 0l6.096 3.484a2.25 2.25 0 01.928 1.764z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 15.75a3 3 0 01-6 0" /></svg>
+                      Jobs
+                    </a>
                 </li>
                 <li>
                   <a href="#" id="upload-resume-link-desktop" class="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-indigo-100 hover:bg-indigo-950/25 hover:text-white">
@@ -224,6 +236,17 @@
             <h1 class="text-3xl font-semibold text-white">Welcome to the Parser!</h1>
             <p class="text-gray-400 mt-2">This is where the main content of your resume parser will go.</p>
         </div>
+        
+        <div id="jobs-content" style="display: none;">
+            <div class="sm:flex sm:items-center">
+                <div class="sm:flex-auto">
+                  <h1 class="text-3xl font-semibold text-white">Jobs</h1>
+                </div>
+                <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                    <a href="{% url 'create_job_posting' %}" class="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Create Job Posting</a>
+                </div>
+            </div>
+        </div>
 
         <div id="upload-resume-content" style="display: none;">
             <h1 class="text-3xl font-semibold text-white">Upload Resumes</h1>
@@ -242,18 +265,18 @@
                           {{ selected_job.job_type }}
                         </div>
                         <div class="mt-2 flex items-center text-sm text-gray-400">
-                          <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1.5 size-5 shrink-0 text-gray-500">
-                            <path d="m9.69 18.933.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 0 0 .281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 1 0 3 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 0 0 2.273 1.765 11.842 11.842 0 0 0 .976.544l.062.029.018.008.006.003ZM10 11.25a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Z" clip-rule="evenodd" fill-rule="evenodd" />
-                          </svg>
-                          {{ selected_job.location }}
-                        </div>
-                        <div class="mt-2 flex items-center text-sm text-gray-400">
-                          <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1.5 size-5 shrink-0 text-gray-500">
-                            <path d="M10.75 10.818v2.614A3.13 3.13 0 0 0 11.888 13c.482-.315.612-.648.612-.875 0-.227-.13-.56-.612-.875a3.13 3.13 0 0 0-1.138-.432ZM8.33 8.62c.053.055.115.11.184.164.208.16.46.284.736.363V6.603a2.45 2.45 0 0 0-.35.13c-.14.065-.27.143-.386.233-.377.292-.514.627-.514.909 0 .184.058.39.202.592.037.051.08.102.128.152Z" />
-                            <path d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-6a.75.75 0 0 1 .75.75v.316a3.78 3.78 0 0 1 1.653.713c.426.33.744.74.925 1.2a.75.75 0 0 1-1.395.55 1.35 1.35 0 0 0-.447-.563 2.187 2.187 0 0 0-.736-.363V9.3c.698.093 1.383.32 1.959.696.787.514 1.29 1.27 1.29 2.13 0 .86-.504 1.616-1.29 2.13-.576.377-1.261.603-1.96.696v.299a.75.75 0 1 1-1.5 0v-.3c-.697-.092-1.382-.318-1.958-.695-.482-.315-.857-.717-1.078-1.188a.75.75 0 1 1 1.359-.636c.08.173.245.376.54.569.313.205.706.353 1.138.432v-2.748a3.782 3.782 0 0 1-1.653-.713C6.9 9.433 6.5 8.681 6.5 7.875c0-.805.4-1.558 1.097-2.096a3.78 3.78 0 0 1 1.653-.713V4.75A.75.75 0 0 1 10 4Z" clip-rule="evenodd" fill-rule="evenodd" />
-                          </svg>
-                          {{ selected_job.salary_range }}
-                        </div>
+                            <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1.5 size-5 shrink-0 text-gray-500">
+                              <path d="m9.69 18.933.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 0 0 .281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 1 0 3 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 0 0 2.273 1.765 11.842 11.842 0 0 0 .976.544l.062.029.018.008.006.003ZM10 11.25a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Z" clip-rule="evenodd" fill-rule="evenodd" />
+                            </svg>
+                            {{ selected_job.city }}, {{ selected_job.province }}
+                          </div>
+                          <div class="mt-2 flex items-center text-sm text-gray-400">
+                            <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1.5 size-5 shrink-0 text-gray-500">
+                              <path d="M10.75 10.818v2.614A3.13 3.13 0 0 0 11.888 13c.482-.315.612-.648.612-.875 0-.227-.13-.56-.612-.875a3.13 3.13 0 0 0-1.138-.432ZM8.33 8.62c.053.055.115.11.184.164.208.16.46.284.736.363V6.603a2.45 2.45 0 0 0-.35.13c-.14.065-.27.143-.386.233-.377.292-.514.627-.514.909 0 .184.058.39.202.592.037.051.08.102.128.152Z" />
+                              <path d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-6a.75.75 0 0 1 .75.75v.316a3.78 3.78 0 0 1 1.653.713c.426.33.744.74.925 1.2a.75.75 0 0 1-1.395.55 1.35 1.35 0 0 0-.447-.563 2.187 2.187 0 0 0-.736-.363V9.3c.698.093 1.383.32 1.959.696.787.514 1.29 1.27 1.29 2.13 0 .86-.504 1.616-1.29 2.13-.576.377-1.261.603-1.96.696v.299a.75.75 0 1 1-1.5 0v-.3c-.697-.092-1.382-.318-1.958-.695-.482-.315-.857-.717-1.078-1.188a.75.75 0 1 1 1.359-.636c.08.173.245.376.54.569.313.205.706.353 1.138.432v-2.748a3.782 3.782 0 0 1-1.653-.713C6.9 9.433 6.5 8.681 6.5 7.875c0-.805.4-1.558 1.097-2.096a3.78 3.78 0 0 1 1.653-.713V4.75A.75.75 0 0 1 10 4Z" clip-rule="evenodd" fill-rule="evenodd" />
+                            </svg>
+                            ${{ selected_job.min_salary }} - ${{ selected_job.max_salary }}
+                          </div>
                         <div class="mt-2 flex items-center text-sm text-gray-400">
                           <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1.5 size-5 shrink-0 text-gray-500">
                             <path d="M5.75 2a.75.75 0 0 1 .75.75V4h7V2.75a.75.75 0 0 1 1.5 0V4h.25A2.75 2.75 0 0 1 18 6.75v8.5A2.75 2.75 0 0 1 15.25 18H4.75A2.75 2.75 0 0 1 2 15.25v-8.5A2.75 2.75 0 0 1 4.75 4H5V2.75A.75.75 0 0 1 5.75 2Zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75Z" clip-rule="evenodd" fill-rule="evenodd" />
@@ -354,18 +377,18 @@
                           {{ selected_job.job_type }}
                         </div>
                         <div class="mt-2 flex items-center text-sm text-gray-400">
-                          <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1.5 size-5 shrink-0 text-gray-500">
-                            <path d="m9.69 18.933.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 0 0 .281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 1 0 3 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 0 0 2.273 1.765 11.842 11.842 0 0 0 .976.544l.062.029.018.008.006.003ZM10 11.25a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Z" clip-rule="evenodd" fill-rule="evenodd" />
-                          </svg>
-                          {{ selected_job.location }}
-                        </div>
-                        <div class="mt-2 flex items-center text-sm text-gray-400">
-                          <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1.5 size-5 shrink-0 text-gray-500">
-                            <path d="M10.75 10.818v2.614A3.13 3.13 0 0 0 11.888 13c.482-.315.612-.648.612-.875 0-.227-.13-.56-.612-.875a3.13 3.13 0 0 0-1.138-.432ZM8.33 8.62c.053.055.115.11.184.164.208.16.46.284.736.363V6.603a2.45 2.45 0 0 0-.35.13c-.14.065-.27.143-.386.233-.377.292-.514.627-.514.909 0 .184.058.39.202.592.037.051.08.102.128.152Z" />
-                            <path d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-6a.75.75 0 0 1 .75.75v.316a3.78 3.78 0 0 1 1.653.713c.426.33.744.74.925 1.2a.75.75 0 0 1-1.395.55 1.35 1.35 0 0 0-.447-.563 2.187 2.187 0 0 0-.736-.363V9.3c.698.093 1.383.32 1.959.696.787.514 1.29 1.27 1.29 2.13 0 .86-.504 1.616-1.29 2.13-.576.377-1.261.603-1.96.696v.299a.75.75 0 1 1-1.5 0v-.3c-.697-.092-1.382-.318-1.958-.695-.482-.315-.857-.717-1.078-1.188a.75.75 0 1 1 1.359-.636c.08.173.245.376.54.569.313.205.706.353 1.138.432v-2.748a3.782 3.782 0 0 1-1.653-.713C6.9 9.433 6.5 8.681 6.5 7.875c0-.805.4-1.558 1.097-2.096a3.78 3.78 0 0 1 1.653-.713V4.75A.75.75 0 0 1 10 4Z" clip-rule="evenodd" fill-rule="evenodd" />
-                          </svg>
-                          {{ selected_job.salary_range }}
-                        </div>
+                            <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1.5 size-5 shrink-0 text-gray-500">
+                              <path d="m9.69 18.933.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 0 0 .281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 1 0 3 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 0 0 2.273 1.765 11.842 11.842 0 0 0 .976.544l.062.029.018.008.006.003ZM10 11.25a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Z" clip-rule="evenodd" fill-rule="evenodd" />
+                            </svg>
+                            {{ selected_job.city }}, {{ selected_job.province }}
+                          </div>
+                          <div class="mt-2 flex items-center text-sm text-gray-400">
+                            <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1.5 size-5 shrink-0 text-gray-500">
+                              <path d="M10.75 10.818v2.614A3.13 3.13 0 0 0 11.888 13c.482-.315.612-.648.612-.875 0-.227-.13-.56-.612-.875a3.13 3.13 0 0 0-1.138-.432ZM8.33 8.62c.053.055.115.11.184.164.208.16.46.284.736.363V6.603a2.45 2.45 0 0 0-.35.13c-.14.065-.27.143-.386.233-.377.292-.514.627-.514.909 0 .184.058.39.202.592.037.051.08.102.128.152Z" />
+                              <path d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-6a.75.75 0 0 1 .75.75v.316a3.78 3.78 0 0 1 1.653.713c.426.33.744.74.925 1.2a.75.75 0 0 1-1.395.55 1.35 1.35 0 0 0-.447-.563 2.187 2.187 0 0 0-.736-.363V9.3c.698.093 1.383.32 1.959.696.787.514 1.29 1.27 1.29 2.13 0 .86-.504 1.616-1.29 2.13-.576.377-1.261.603-1.96.696v.299a.75.75 0 1 1-1.5 0v-.3c-.697-.092-1.382-.318-1.958-.695-.482-.315-.857-.717-1.078-1.188a.75.75 0 1 1 1.359-.636c.08.173.245.376.54.569.313.205.706.353 1.138.432v-2.748a3.782 3.782 0 0 1-1.653-.713C6.9 9.433 6.5 8.681 6.5 7.875c0-.805.4-1.558 1.097-2.096a3.78 3.78 0 0 1 1.653-.713V4.75A.75.75 0 0 1 10 4Z" clip-rule="evenodd" fill-rule="evenodd" />
+                            </svg>
+                            ${{ selected_job.min_salary }} - ${{ selected_job.max_salary }}
+                          </div>
                         <div class="mt-2 flex items-center text-sm text-gray-400">
                           <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1.5 size-5 shrink-0 text-gray-500">
                             <path d="M5.75 2a.75.75 0 0 1 .75.75V4h7V2.75a.75.75 0 0 1 1.5 0V4h.25A2.75 2.75 0 0 1 18 6.75v8.5A2.75 2.75 0 0 1 15.25 18H4.75A2.75 2.75 0 0 1 2 15.25v-8.5A2.75 2.75 0 0 1 4.75 4H5V2.75A.75.75 0 0 1 5.75 2Zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75Z" clip-rule="evenodd" fill-rule="evenodd" />
@@ -427,27 +450,122 @@
   </main>
 </div>
 
+<div id="job-creation-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center" style="display: none;">
+    <div class="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-2xl">
+        <h2 class="text-2xl font-bold text-white mb-6">Create Job Posting</h2>
+        <form id="create-job-form">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="id_title" class="block text-sm font-medium text-gray-300">Job Title</label>
+                    <input type="text" name="title" id="id_title" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="id_company" class="block text-sm font-medium text-gray-300">Company</label>
+                    <select name="company" id="id_company" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <option>Shopify</option>
+                        <option>RBC</option>
+                        <option>Lululemon</option>
+                        <option>Air Canada</option>
+                        <option>TD Bank Group</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="id_country" class="block text-sm font-medium text-gray-300">Country</label>
+                    <select name="country" id="id_country" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <option>Canada</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="id_province" class="block text-sm font-medium text-gray-300">Province</label>
+                    <select name="province" id="id_province" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <option>Alberta</option>
+                        <option>British Columbia</option>
+                        <option>Manitoba</option>
+                        <option>New Brunswick</option>
+                        <option>Newfoundland and Labrador</option>
+                        <option>Nova Scotia</option>
+                        <option>Ontario</option>
+                        <option>Prince Edward Island</option>
+                        <option>Quebec</option>
+                        <option>Saskatchewan</option>
+                        <option>Northwest Territories</option>
+                        <option>Nunavut</option>
+                        <option>Yukon</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="id_city" class="block text-sm font-medium text-gray-300">City</label>
+                    <input type="text" name="city" id="id_city" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="id_job_type" class="block text-sm font-medium text-gray-300">Timing</label>
+                    <select name="job_type" id="id_job_type" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <option>Full-time</option>
+                        <option>Part-time</option>
+                        <option>Casual</option>
+                        <option>Seasonal</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="id_min_salary" class="block text-sm font-medium text-gray-300">Minimum Yearly Salary</label>
+                    <select name="min_salary" id="id_min_salary" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        {% for i in ""|center:100 %}
+                        <option value="{{ forloop.counter }}0000">${{ forloop.counter }}0,000</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="id_max_salary" class="block text-sm font-medium text-gray-300">Maximum Yearly Salary</label>
+                    <select name="max_salary" id="id_max_salary" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        {% for i in ""|center:100 %}
+                        <option value="{{ forloop.counter }}0000">${{ forloop.counter }}0,000</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="id_closing_date" class="block text-sm font-medium text-gray-300">Closing Date</label>
+                    <input type="date" name="closing_date" id="id_closing_date" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="id_description" class="block text-sm font-medium text-gray-300">Job Description (Markdown supported)</label>
+                    <textarea name="description" id="id_description" rows="10" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button type="button" id="cancel-job-creation" class="rounded-md bg-gray-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-gray-500">Cancel</button>
+                <button type="submit" class="ml-4 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500">Create Job</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui/1.12.1/jquery-ui.min.css">
+<link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui/1.12.1/jquery-ui.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
+<script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const dashboardLink = document.getElementById('dashboard-link');
+        const jobsLink = document.getElementById('jobs-link');
         const uploadResumeLink = document.getElementById('upload-resume-link');
         const candidatesLink = document.getElementById('candidates-link');
         
         const dashboardLinkDesktop = document.getElementById('dashboard-link-desktop');
+        const jobsLinkDesktop = document.getElementById('jobs-link-desktop');
         const uploadResumeLinkDesktop = document.getElementById('upload-resume-link-desktop');
         const candidatesLinkDesktop = document.getElementById('candidates-link-desktop');
 
         const dashboardContent = document.getElementById('dashboard-content');
+        const jobsContent = document.getElementById('jobs-content');
         const uploadResumeContent = document.getElementById('upload-resume-content');
         const candidatesContent = document.getElementById('candidates-content');
 
         const showSection = (sectionToShow) => {
-            [dashboardContent, uploadResumeContent, candidatesContent].forEach(section => {
+            [dashboardContent, jobsContent, uploadResumeContent, candidatesContent].forEach(section => {
                 section.style.display = 'none';
             });
             sectionToShow.style.display = 'block';
@@ -467,10 +585,12 @@
         }
 
         dashboardLink.addEventListener('click', (e) => { e.preventDefault(); showSection(dashboardContent); });
+        jobsLink.addEventListener('click', (e) => { e.preventDefault(); showSection(jobsContent); });
         uploadResumeLink.addEventListener('click', (e) => { e.preventDefault(); showSection(uploadResumeContent); });
         candidatesLink.addEventListener('click', (e) => { e.preventDefault(); showSection(candidatesContent); });
         
         dashboardLinkDesktop.addEventListener('click', (e) => { e.preventDefault(); showSection(dashboardContent); });
+        jobsLinkDesktop.addEventListener('click', (e) => { e.preventDefault(); showSection(jobsContent); });
         uploadResumeLinkDesktop.addEventListener('click', (e) => { e.preventDefault(); showSection(uploadResumeContent); });
         candidatesLinkDesktop.addEventListener('click', (e) => { e.preventDefault(); showSection(candidatesContent); });
 
@@ -529,7 +649,6 @@
         if (jobSelect) {
             jobSelect.addEventListener('change', function() {
                 const form = document.getElementById('job-selection-form-nav');
-                // Create a hidden input to submit the value
                 const hiddenInput = document.createElement('input');
                 hiddenInput.type = 'hidden';
                 hiddenInput.name = 'job_id';

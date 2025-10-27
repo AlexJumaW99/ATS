@@ -1,66 +1,37 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from .models import Candidate, Job
 from .gemini_parser import process_resume
 from django.http import JsonResponse
 from django.db.models import Q
 from datetime import date
-
-# Hardcoded dummy jobs
-dummy_jobs = [
-    {
-        'id': 1,
-        'title': 'Back End Developer',
-        'company': 'Tech Solutions Inc.',
-        'location': 'Remote',
-        'job_type': 'Full-time',
-        'salary_range': '$120k - $140k',
-        'closing_date': date(2025, 1, 9),
-    },
-    {
-        'id': 2,
-        'title': 'Front End Developer',
-        'company': 'Creative Designs',
-        'location': 'New York, NY',
-        'job_type': 'Full-time',
-        'salary_range': '$100k - $120k',
-        'closing_date': date(2025, 2, 15),
-    },
-    {
-        'id': 3,
-        'title': 'Data Scientist',
-        'company': 'Data Insights LLC',
-        'location': 'San Francisco, CA',
-        'job_type': 'Contract',
-        'salary_range': '$150k - $170k',
-        'closing_date': date(2025, 3, 1),
-    }
-]
-
-def create_dummy_jobs():
-    for job_data in dummy_jobs:
-        Job.objects.get_or_create(id=job_data['id'], defaults=job_data)
+from .forms import JobForm
+import json
 
 @login_required
 def parser_home(request):
     """
     Renders the main page of the parser app and displays candidates.
     """
-    create_dummy_jobs()
-    jobs = Job.objects.all()
+    jobs = Job.objects.all().order_by('-opening_date')
     selected_job_id = request.GET.get('job_id')
+    newly_created_job_id = request.GET.get('new_job_id')
     selected_job = None
     candidates = Candidate.objects.none()
 
+    if newly_created_job_id:
+        selected_job_id = newly_created_job_id
+
     if selected_job_id:
-        selected_job = Job.objects.get(id=selected_job_id)
-        candidates = Candidate.objects.filter(job=selected_job)
-    else:
-        # Default to the latest job with uploaded candidates
-        latest_candidate = Candidate.objects.order_by('-id').first()
-        if latest_candidate:
-            selected_job = latest_candidate.job
+        try:
+            selected_job = Job.objects.get(id=selected_job_id)
             candidates = Candidate.objects.filter(job=selected_job)
+        except Job.DoesNotExist:
+            pass
+    elif jobs.exists():
+        selected_job = jobs.first()
+        candidates = Candidate.objects.filter(job=selected_job)
 
     # Filtering
     filters = {
@@ -77,7 +48,6 @@ def parser_home(request):
         if value:
             candidates = candidates.filter(**{key: value})
 
-    # Date of Birth range filtering
     min_dob = request.GET.get('min_dob')
     max_dob = request.GET.get('max_dob')
     if min_dob:
@@ -85,11 +55,9 @@ def parser_home(request):
     if max_dob:
         candidates = candidates.filter(date_of_birth__lte=max_dob)
 
-    # Sorting
     sort_by = request.GET.get('sort_by', 'id')
     order = request.GET.get('order', 'asc')
 
-    # Preserve filters when sorting
     query_params = request.GET.copy()
     if 'sort_by' in query_params:
         del query_params['sort_by']
@@ -102,14 +70,45 @@ def parser_home(request):
         sort_by_param = sort_by
     candidates = candidates.order_by(sort_by_param)
 
+    job_form = JobForm()
+
     context = {
         'jobs': jobs,
         'selected_job': selected_job,
         'candidates': candidates,
         'query_params': query_params.urlencode(),
+        'job_form': job_form,
     }
 
     return render(request, 'parser/parser_home.html', context)
+
+
+@login_required
+def create_job(request):
+    if request.method == 'POST':
+        form = JobForm(request.POST)
+        if form.is_valid():
+            job = form.save(commit=False)
+            job.created_by = request.user
+            job.save()
+            return JsonResponse({'success': True, 'job': {'id': job.id, 'title': job.title}})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
+    return JsonResponse({'success': False, 'errors': 'Invalid request method.'})
+
+
+@login_required
+def create_job_posting(request):
+    if request.method == 'POST':
+        form = JobForm(request.POST)
+        if form.is_valid():
+            job = form.save(commit=False)
+            job.created_by = request.user
+            job.save()
+            return redirect(f"{reverse('parser_home')}?new_job_id={job.id}")
+    else:
+        form = JobForm()
+    return render(request, 'parser/create_job_posting.html', {'form': form})
 
 
 @login_required
@@ -161,7 +160,6 @@ def autocomplete(request):
         field = request.GET.get('field')
         term = request.GET.get('term')
 
-        # Ensure the field is a valid field on the Candidate model to prevent security issues
         valid_fields = [f.name for f in Candidate._meta.get_fields()]
         if field not in valid_fields:
             return JsonResponse([], safe=False)

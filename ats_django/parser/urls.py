@@ -3,6 +3,8 @@ from . import views
 
 urlpatterns = [
     path('', views.parser_home, name='parser_home'),
-    path('upload/', views.upload_resume, name='upload_resume'), # New URL for uploading
+    path('upload/', views.upload_resume, name='upload_resume'),
+    path('create_job/', views.create_job, name='create_job'),
+    path('create_job_posting/', views.create_job_posting, name='create_job_posting'),
     path('autocomplete/', views.autocomplete, name='autocomplete'),
 ]
