@@ -298,22 +298,34 @@
                                       <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Location</th>
                                       <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Salary Range</th>
                                       <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Closing Date</th>
+                                      <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Actions</th>
                                   </tr>
                               </thead>
                               <tbody class="divide-y divide-white/10 bg-gray-900">
                                   {% for job in jobs %}
                                   <tr class="divide-x divide-white/10 hover:bg-gray-700">
-                                      <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">{{ job.id }}</td>
+                                      <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">{{ job.id }}</td> 
                                       <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ job.created_by.email }}</td>
                                       <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">{{ job.title }}</td>
                                       <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ job.company }}</td>
                                       <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ job.city }}, {{ job.province }}</td>
                                       <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">${{ job.min_salary }} - ${{ job.max_salary }}</td>
                                       <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ job.closing_date|date:"F j, Y" }}</td>
+                                      <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">
+                                        <form action="{% url 'delete_job' job.id %}" method="post" onsubmit="return confirm('Are you sure you want to delete this job?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="inline-flex items-center gap-x-1.5 rounded-md bg-red-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-xs hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 dark:bg-red-500 dark:shadow-none dark:hover:bg-red-400 dark:focus-visible:outline-red-500">
+                                              Delete Job
+                                              <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="-mr-0.5 size-5">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM8.28 7.22a.75.75 0 0 0-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 1 0 1.06 1.06L10 11.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L11.06 10l1.72-1.72a.75.75 0 0 0-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                                              </svg>
+                                            </button>
+                                        </form>
+                                      </td>
                                   </tr>
                                   {% empty %}
                                   <tr>
-                                      <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">No jobs found.</td>
+                                      <td colspan="8" class="px-6 py-4 text-center text-sm text-gray-500">No jobs found.</td>
                                   </tr>
                                   {% endfor %}
                               </tbody>

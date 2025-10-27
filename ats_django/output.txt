@@ -1,0 +1,75 @@
+ats_django/
+├── ats_system/
+│   ├── __init__.py
+│   ├── __pycache__/
+│   │   ├── __init__.cpython-313.pyc
+│   │   ├── settings.cpython-313.pyc
+│   │   ├── urls.cpython-313.pyc
+│   │   └── wsgi.cpython-313.pyc
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── db.sqlite3
+├── dummy_data/
+│   └── users.json
+├── generate_tree.py
+├── landing/
+│   ├── __init__.py
+│   ├── __pycache__/
+│   │   ├── __init__.cpython-313.pyc
+│   │   ├── admin.cpython-313.pyc
+│   │   ├── apps.cpython-313.pyc
+│   │   ├── models.cpython-313.pyc
+│   │   ├── urls.cpython-313.pyc
+│   │   └── views.cpython-313.pyc
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations/
+│   │   ├── __init__.py
+│   │   └── __pycache__/
+│   │       └── __init__.cpython-313.pyc
+│   ├── models.py
+│   ├── templates/
+│   │   └── landing/
+│   │       ├── base.html
+│   │       ├── landing_page.html
+│   │       └── login.html
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── manage.py
+├── output.txt
+├── parser/
+│   ├── __init__.py
+│   ├── __pycache__/
+│   │   ├── __init__.cpython-313.pyc
+│   │   ├── admin.cpython-313.pyc
+│   │   ├── apps.cpython-313.pyc
+│   │   ├── forms.cpython-313.pyc
+│   │   ├── gemini_parser.cpython-313.pyc
+│   │   ├── models.cpython-313.pyc
+│   │   ├── urls.cpython-313.pyc
+│   │   └── views.cpython-313.pyc
+│   ├── admin.py
+│   ├── apps.py
+│   ├── forms.py
+│   ├── gemini_parser.py
+│   ├── migrations/
+│   │   ├── 0001_initial.py
+│   │   ├── __init__.py
+│   │   └── __pycache__/
+│   │       ├── 0001_initial.cpython-313.pyc
+│   │       ├── 0002_candidate_address.cpython-313.pyc
+│   │       ├── 0002_candidate_degree_school_candidate_diploma_and_more.cpython-313.pyc
+│   │       └── __init__.cpython-313.pyc
+│   ├── models.py
+│   ├── templates/
+│   │   └── parser/
+│   │       ├── create_job_posting.html
+│   │       └── parser_home.html
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── requirements.txt
+└── reset_project.py

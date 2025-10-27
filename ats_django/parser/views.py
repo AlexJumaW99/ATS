@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from .models import Candidate, Job
@@ -167,3 +167,14 @@ def autocomplete(request):
         values = list(qs.values_list(field, flat=True).distinct())
         return JsonResponse(values, safe=False)
     return JsonResponse([], safe=False)
+
+@login_required
+def delete_job(request, job_id):
+    """
+    Deletes a job and all associated candidates.
+    """
+    job = get_object_or_404(Job, id=job_id, created_by=request.user)
+    if request.method == 'POST':
+        job.delete()
+        return redirect('parser_home')
+    return redirect('parser_home')
