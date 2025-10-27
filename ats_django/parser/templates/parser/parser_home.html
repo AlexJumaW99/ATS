@@ -284,6 +284,40 @@
                   </div>
             </div>
             {% endif %}
+            <div class="mt-8 flow-root">
+                <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                    <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                            <table class="min-w-full divide-y divide-white/15">
+                                <thead class="bg-gray-900">
+                                    <tr class="divide-x divide-white/10">
+                                        <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-6">Title</th>
+                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Company</th>
+                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Location</th>
+                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Salary Range</th>
+                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Closing Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/10 bg-gray-900">
+                                    {% for job in jobs %}
+                                    <tr class="divide-x divide-white/10 hover:bg-gray-700">
+                                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">{{ job.title }}</td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ job.company }}</td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ job.city }}, {{ job.province }}</td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">${{ job.min_salary }} - ${{ job.max_salary }}</td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{{ job.closing_date|date:"F j, Y" }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">No jobs found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="upload-resume-content" style="display: none;">
