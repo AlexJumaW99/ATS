@@ -172,13 +172,30 @@
     <div aria-hidden="true" class="h-6 w-px bg-white/10 lg:hidden"></div>
 
     <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-        <form id="job-selection-form-nav" method="get" class="flex flex-1 items-center">
-            <label for="job-select-nav" class="text-sm font-medium text-gray-300 mr-4">Select Job:</label>
-            <select id="job-select-nav" name="job_id" onchange="this.form.submit()" class="block w-full max-w-xs rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                {% for job in jobs %}
-                    <option value="{{ job.id }}" {% if selected_job.id == job.id %}selected{% endif %}>{{ job.title }}</option>
-                {% endfor %}
-            </select>
+        <form id="job-selection-form-nav" method="get" class="relative flex flex-1 items-center">
+            <label for="job-select-nav" class="block text-sm/6 font-medium text-white mr-4">Select Job:</label>
+            <el-select id="job-select-nav" name="job_id" value="{{ selected_job.id }}" class="mt-2 block">
+                <button type="button" class="grid w-full cursor-default grid-cols-1 rounded-md bg-white/5 py-1.5 pr-2 pl-3 text-left text-white outline-1 -outline-offset-1 outline-white/10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-500 sm:text-sm/6">
+                    <el-selectedcontent class="col-start-1 row-start-1 truncate pr-6">
+                        {{ selected_job.title | default:"Select Job" }}
+                    </el-selectedcontent>
+                    <svg viewBox="0 0 16 16" fill="currentColor" data-slot="icon" aria-hidden="true" class="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-400 sm:size-4">
+                        <path d="M5.22 10.22a.75.75 0 0 1 1.06 0L8 11.94l1.72-1.72a.75.75 0 1 1 1.06 1.06l-2.25 2.25a.75.75 0 0 1-1.06 0l-2.25-2.25a.75.75 0 0 1 0-1.06ZM10.78 5.78a.75.75 0 0 1-1.06 0L8 4.06 6.28 5.78a.75.75 0 0 1-1.06-1.06l2.25-2.25a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1 0 1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
+                    </svg>
+                </button>
+                <el-options anchor="bottom start" popover class="max-h-60 w-(--button-width) overflow-auto rounded-md bg-gray-800 py-1 text-base outline-1 -outline-offset-1 outline-white/10 [--anchor-gap:--spacing(1)] data-leave:transition data-leave:transition-discrete data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm">
+                    {% for job in jobs %}
+                    <el-option value="{{ job.id }}" class="group/option relative block cursor-default py-2 pr-4 pl-8 text-white select-none focus:bg-indigo-500 focus:text-white focus:outline-hidden">
+                        <span class="block truncate {% if job.id == selected_job.id %}font-semibold{% else %}font-normal{% endif %}">{{ job.title }}</span>
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-1.5 text-indigo-400 in-[el-selectedcontent]:hidden {% if job.id != selected_job.id %}hidden{% endif %}">
+                            <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="size-5">
+                                <path d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" fill-rule="evenodd"></path>
+                            </svg>
+                        </span>
+                    </el-option>
+                    {% endfor %}
+                </el-options>
+            </el-select>
         </form>
       <div class="flex items-center gap-x-4 lg:gap-x-6">
         <button type="button" class="-m-2.5 p-2.5 text-gray-400 hover:text-white">
@@ -477,30 +494,32 @@
         const parsedOutput = document.getElementById('parsed-output');
         const parsedOutputCode = parsedOutput.querySelector('code');
 
-        uploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            loadingAnimation.style.display = 'flex';
-            geminiOutput.style.display = 'none';
-            parsedOutput.style.display = 'none';
+        if (uploadForm) {
+            uploadForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                loadingAnimation.style.display = 'flex';
+                geminiOutput.style.display = 'none';
+                parsedOutput.style.display = 'none';
 
-            const formData = new FormData(uploadForm);
-            const response = await fetch(uploadForm.action, {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                const formData = new FormData(uploadForm);
+                const response = await fetch(uploadForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                });
+
+                const data = await response.json();
+                loadingAnimation.style.display = 'none';
+                if (data.csv_output) {
+                    geminiOutputCode.textContent = data.csv_output;
+                    geminiOutput.style.display = 'block';
+                }
+                if (data.parsed_data) {
+                    parsedOutputCode.textContent = JSON.stringify(data.parsed_data, null, 2);
+                    parsedOutput.style.display = 'block';
+                }
             });
-
-            const data = await response.json();
-            loadingAnimation.style.display = 'none';
-            if (data.csv_output) {
-                geminiOutputCode.textContent = data.csv_output;
-                geminiOutput.style.display = 'block';
-            }
-            if (data.parsed_data) {
-                parsedOutputCode.textContent = JSON.stringify(data.parsed_data, null, 2);
-                parsedOutput.style.display = 'block';
-            }
-        });
+        }
 
         $(function() {
             $(".autocomplete").each(function() {
@@ -518,6 +537,20 @@
                 });
             });
         });
+
+        const jobSelect = document.getElementById('job-select-nav');
+        if (jobSelect) {
+            jobSelect.addEventListener('change', function() {
+                const form = document.getElementById('job-selection-form-nav');
+                // Create a hidden input to submit the value
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'job_id';
+                hiddenInput.value = this.value;
+                form.appendChild(hiddenInput);
+                form.submit();
+            });
+        }
     });
 </script>
 {% endblock %}
