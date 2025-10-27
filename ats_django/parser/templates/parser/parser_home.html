@@ -172,12 +172,14 @@
     <div aria-hidden="true" class="h-6 w-px bg-white/10 lg:hidden"></div>
 
     <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-      <form action="#" method="GET" class="grid flex-1 grid-cols-1">
-        <input name="search" placeholder="Search" aria-label="Search" class="col-start-1 row-start-1 block size-full bg-gray-900 pl-8 text-base text-white outline-hidden placeholder:text-gray-500 sm:text-sm/6" />
-        <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 size-5 self-center text-gray-400">
-          <path d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" fill-rule="evenodd" />
-        </svg>
-      </form>
+        <form id="job-selection-form-nav" method="get" class="flex flex-1 items-center">
+            <label for="job-select-nav" class="text-sm font-medium text-gray-300 mr-4">Select Job:</label>
+            <select id="job-select-nav" name="job_id" onchange="this.form.submit()" class="block w-full max-w-xs rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                {% for job in jobs %}
+                    <option value="{{ job.id }}" {% if selected_job.id == job.id %}selected{% endif %}>{{ job.title }}</option>
+                {% endfor %}
+            </select>
+        </form>
       <div class="flex items-center gap-x-4 lg:gap-x-6">
         <button type="button" class="-m-2.5 p-2.5 text-gray-400 hover:text-white">
           <span class="sr-only">View notifications</span>
@@ -221,17 +223,7 @@
 
         <div id="upload-resume-content" style="display: none;">
             <h1 class="text-3xl font-semibold text-white">Upload Resumes</h1>
-            <div class="mt-4">
-                <form id="job-selection-form-upload" method="get" action="{% url 'parser_home' %}" class="flex items-center space-x-4">
-                    <label for="job-select-upload" class="text-sm font-medium text-gray-300">Select a Job:</label>
-                    <select id="job-select-upload" name="job_id" class="block w-full max-w-xs rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        {% for job in jobs %}
-                            <option value="{{ job.id }}" {% if selected_job.id == job.id %}selected{% endif %}>{{ job.title }}</option>
-                        {% endfor %}
-                    </select>
-                </form>
-            </div>
-
+            
             {% if selected_job %}
             <div class="mt-6">
                 <div class="lg:flex lg:items-center lg:justify-between">
@@ -302,15 +294,6 @@
             <div class="sm:flex sm:items-center">
                 <div class="sm:flex-auto">
                   <h1 class="text-3xl font-semibold text-white">Candidates</h1>
-                </div>
-                <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                    <form id="job-selection-form" method="get" class="flex items-center space-x-4">
-                        <select id="job-select" name="job_id" onchange="this.form.submit()" class="block w-full max-w-xs rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                            {% for job in jobs %}
-                                <option value="{{ job.id }}" {% if selected_job.id == job.id %}selected{% endif %}>{{ job.title }}</option>
-                            {% endfor %}
-                        </select>
-                    </form>
                 </div>
                 <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                     <div class="relative isolate z-50 shadow-sm">
@@ -534,14 +517,6 @@
                     minLength: 1
                 });
             });
-        });
-
-        const jobSelectUpload = document.getElementById('job-select-upload');
-        jobSelectUpload.addEventListener('change', () => {
-            const selectedJobId = jobSelectUpload.value;
-            const url = new URL(window.location.href);
-            url.searchParams.set('job_id', selectedJobId);
-            window.location.href = url.toString();
         });
     });
 </script>
