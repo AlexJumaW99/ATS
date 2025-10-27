@@ -14,7 +14,7 @@ def parser_home(request):
     """
     Renders the main page of the parser app and displays candidates.
     """
-    jobs = Job.objects.all().order_by('-opening_date')
+    jobs = Job.objects.select_related('created_by').all().order_by('-opening_date')
     selected_job_id = request.GET.get('job_id')
     newly_created_job_id = request.GET.get('new_job_id')
     selected_job = None
@@ -25,7 +25,7 @@ def parser_home(request):
 
     if selected_job_id:
         try:
-            selected_job = Job.objects.get(id=selected_job_id)
+            selected_job = Job.objects.select_related('created_by').get(id=selected_job_id)
             candidates = Candidate.objects.filter(job=selected_job)
         except Job.DoesNotExist:
             pass
@@ -81,7 +81,6 @@ def parser_home(request):
     }
 
     return render(request, 'parser/parser_home.html', context)
-
 
 @login_required
 def create_job(request):
