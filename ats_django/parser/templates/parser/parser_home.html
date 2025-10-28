@@ -233,8 +233,64 @@
   <main class="py-10">
     <div class="px-4 sm:px-6 lg:px-8">
         <div id="dashboard-content">
-            <h1 class="text-3xl font-semibold text-white">Welcome to the Parser!</h1>
-            <p class="text-gray-400 mt-2">This is where the main content of your resume parser will go.</p>
+            <div>
+              <h3 class="text-base font-semibold text-white">Last 30 days</h3>
+            
+              <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="relative overflow-hidden rounded-lg bg-gray-800/75 px-4 pt-5 pb-12 shadow-sm inset-ring inset-ring-white/10 sm:px-6 sm:pt-6">
+                  <dt>
+                    <div class="absolute rounded-md bg-indigo-500 p-3">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.07a2.25 2.25 0 01-2.25 2.25H5.625a2.25 2.25 0 01-2.25-2.25v-4.07a2.25 2.25 0 01.928-1.764l6.096-3.484a2.25 2.25 0 012.296 0l6.096 3.484a2.25 2.25 0 01.928 1.764z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 15.75a3 3 0 01-6 0" /></svg>
+                    </div>
+                    <p class="ml-16 truncate text-sm font-medium text-gray-400">Open Job Postings</p>
+                  </dt>
+                  <dd class="ml-16 flex items-baseline pb-6 sm:pb-7">
+                    <p class="text-2xl font-semibold text-white">{{ total_jobs }}</p>
+                    <div class="absolute inset-x-0 bottom-0 bg-gray-700/20 px-4 py-4 sm:px-6">
+                      <div class="text-sm">
+                        <a href="#" class="font-medium text-indigo-400 hover:text-indigo-300">View all<span class="sr-only"> Total Subscribers stats</span></a>
+                      </div>
+                    </div>
+                  </dd>
+                </div>
+                <div class="relative overflow-hidden rounded-lg bg-gray-800/75 px-4 pt-5 pb-12 shadow-sm inset-ring inset-ring-white/10 sm:px-6 sm:pt-6">
+                  <dt>
+                    <div class="absolute rounded-md bg-indigo-500 p-3">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 text-white">
+                        <path d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </div>
+                    <p class="ml-16 truncate text-sm font-medium text-gray-400">Total Candidates</p>
+                  </dt>
+                  <dd class="ml-16 flex items-baseline pb-6 sm:pb-7">
+                    <p class="text-2xl font-semibold text-white">{{ total_candidates }}</p>
+                    <div class="absolute inset-x-0 bottom-0 bg-gray-700/20 px-4 py-4 sm:px-6">
+                      <div class="text-sm">
+                        <a href="#" class="font-medium text-indigo-400 hover:text-indigo-300">View all<span class="sr-only"> Avg. Open Rate stats</span></a>
+                      </div>
+                    </div>
+                  </dd>
+                </div>
+                <div class="relative overflow-hidden rounded-lg bg-gray-800/75 px-4 pt-5 pb-12 shadow-sm inset-ring inset-ring-white/10 sm:px-6 sm:pt-6">
+                  <dt>
+                    <div class="absolute rounded-md bg-indigo-500 p-3">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 text-white">
+                        <path d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </div>
+                    <p class="ml-16 truncate text-sm font-medium text-gray-400">Top Applicants</p>
+                  </dt>
+                  <dd class="ml-16 flex items-baseline pb-6 sm:pb-7">
+                    <p class="text-2xl font-semibold text-white">{{ top_applicants }}</p>
+                    <div class="absolute inset-x-0 bottom-0 bg-gray-700/20 px-4 py-4 sm:px-6">
+                      <div class="text-sm">
+                        <a href="#" class="font-medium text-indigo-400 hover:text-indigo-300">View all<span class="sr-only"> Avg. Click Rate stats</span></a>
+                      </div>
+                    </div>
+                  </dd>
+                </div>
+              </dl>
+            </div>
         </div>
         
         

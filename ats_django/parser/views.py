@@ -8,6 +8,7 @@ from django.db.models import Q
 from datetime import date
 from .forms import JobForm
 import json
+import random
 
 @login_required
 def parser_home(request):
@@ -72,12 +73,20 @@ def parser_home(request):
 
     job_form = JobForm()
 
+    # Analytics data
+    total_jobs = Job.objects.count()
+    total_candidates = Candidate.objects.count()
+    top_applicants = 0 # Placeholder for now
+
     context = {
         'jobs': jobs,
         'selected_job': selected_job,
         'candidates': candidates,
         'query_params': query_params.urlencode(),
         'job_form': job_form,
+        'total_jobs': total_jobs,
+        'total_candidates': total_candidates,
+        'top_applicants': top_applicants,
     }
 
     return render(request, 'parser/parser_home.html', context)
