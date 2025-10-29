@@ -184,14 +184,21 @@
         <div aria-hidden="true" class="h-6 w-px bg-white/10 lg:hidden"></div>
 
         <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+            {% if jobs %}
             <form id="job-selection-form-nav" method="get" class="flex flex-1 items-center">
-            <label for="job-select-nav" class="text-sm font-medium text-gray-300 mr-4">Select Job:</label>
-            <select id="job-select-nav" name="job_id" onchange="this.form.submit()" class="block w-full max-w-xs rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                {% for job in jobs %}
-                    <option value="{{ job.id }}" {% if selected_job.id == job.id %}selected{% endif %}>{{ job.title }}</option>
-                {% endfor %}
-            </select>
+                <label for="job-select-nav" class="text-sm font-medium text-gray-300 mr-4">Select Job:</label>
+                <select id="job-select-nav" name="job_id" onchange="this.form.submit()" class="block w-full max-w-xs rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    {% for job in jobs %}
+                        <option value="{{ job.id }}" {% if selected_job.id == job.id %}selected{% endif %}>{{ job.title }}</option>
+                    {% endfor %}
+                </select>
             </form>
+            {% else %}
+            <div class="flex flex-1 items-center">
+                <p class="text-sm font-medium text-gray-300 mr-4">There are no jobs to select, please create a job posting</p>
+                <a href="{% url 'create_job_posting' %}" class="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Create Job Posting</a>
+            </div>
+            {% endif %}
             <div class="flex items-center gap-x-4 lg:gap-x-6">
                 <button type="button" class="-m-2.5 p-2.5 text-gray-400 hover:text-white">
                     <span class="sr-only">View notifications</span>
