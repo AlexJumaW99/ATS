@@ -15,7 +15,7 @@ def parser_home(request):
     """
     Renders the main page of the parser app and displays candidates.
     """
-    jobs = Job.objects.select_related('created_by').all().order_by('-opening_date')
+    jobs = Job.objects.select_related('created_by', 'created_by__profile').all().order_by('-opening_date')
     selected_job_id = request.GET.get('job_id')
     newly_created_job_id = request.GET.get('new_job_id')
     selected_job = None
