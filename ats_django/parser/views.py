@@ -207,3 +207,12 @@ def update_profile(request):
         profile_form = ProfileUpdateForm(instance=request.user.profile)
 
     return render(request, 'parser/parser_home.html', {'profile_form': profile_form})
+
+
+@login_required
+def job_posting_details(request, job_id):
+    """
+    Displays the details of a specific job posting.
+    """
+    job = get_object_or_404(Job, id=job_id)
+    return render(request, 'parser/job_posting_details.html', {'job': job})

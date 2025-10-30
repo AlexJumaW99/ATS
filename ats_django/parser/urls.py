@@ -9,4 +9,5 @@ urlpatterns = [
     path('autocomplete/', views.autocomplete, name='autocomplete'),
     path('delete_job/<int:job_id>/', views.delete_job, name='delete_job'),
     path('update_profile/', views.update_profile, name='update_profile'),
+    path('job/<int:job_id>/', views.job_posting_details, name='job_posting_details'),
 ]
