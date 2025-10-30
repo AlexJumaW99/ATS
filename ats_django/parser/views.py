@@ -1,12 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
-from .models import Candidate, Job
+from .models import Candidate, Job, Profile
 from .gemini_parser import process_resume
 from django.http import JsonResponse
 from django.db.models import Q
 from datetime import date
-from .forms import JobForm
+from .forms import JobForm, ProfileUpdateForm
 import json
 import random
 
@@ -72,6 +72,13 @@ def parser_home(request):
     candidates = candidates.order_by(sort_by_param)
 
     job_form = JobForm()
+    
+    try:
+        profile_form = ProfileUpdateForm(instance=request.user.profile)
+    except Profile.DoesNotExist:
+        Profile.objects.create(user=request.user)
+        profile_form = ProfileUpdateForm(instance=request.user.profile)
+
 
     # Analytics data
     total_jobs = Job.objects.count()
@@ -84,6 +91,7 @@ def parser_home(request):
         'candidates': candidates,
         'query_params': query_params.urlencode(),
         'job_form': job_form,
+        'profile_form': profile_form,
         'total_jobs': total_jobs,
         'total_candidates': total_candidates,
         'top_applicants': top_applicants,
@@ -187,3 +195,15 @@ def delete_job(request, job_id):
         job.delete()
         return redirect('parser_home')
     return redirect('parser_home')
+
+@login_required
+def update_profile(request):
+    if request.method == 'POST':
+        profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
+        if profile_form.is_valid():
+            profile_form.save()
+            return redirect('parser_home')
+    else:
+        profile_form = ProfileUpdateForm(instance=request.user.profile)
+
+    return render(request, 'parser/parser_home.html', {'profile_form': profile_form})
