@@ -4,7 +4,7 @@ from django.urls import reverse
 from .models import Candidate, Job, Profile
 from .gemini_parser import process_resume
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q, Count  # <-- Import Count here
 from datetime import date
 from .forms import JobForm, ProfileUpdateForm
 import json
@@ -85,6 +85,16 @@ def parser_home(request):
     total_candidates = Candidate.objects.count()
     top_applicants = 0 # Placeholder for now
 
+    # --- New D3 Bar Chart Data ---
+    # Aggregate candidate counts for each job
+    job_applicant_counts = Job.objects.annotate(
+        applicant_count=Count('candidates')
+    ).values('title', 'applicant_count').order_by('-applicant_count')
+    
+    # Convert QuerySet to list and then to JSON
+    candidate_chart_data = json.dumps(list(job_applicant_counts))
+    # --- End New Data ---
+
     context = {
         'jobs': jobs,
         'selected_job': selected_job,
@@ -95,6 +105,7 @@ def parser_home(request):
         'total_jobs': total_jobs,
         'total_candidates': total_candidates,
         'top_applicants': top_applicants,
+        'candidate_chart_data': candidate_chart_data, # <-- Add new data to context
     }
 
     return render(request, 'parser/parser_home.html', context)
