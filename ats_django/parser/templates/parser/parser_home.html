@@ -863,6 +863,18 @@
         const chartData = JSON.parse('{{ candidate_chart_data|safe }}');
         
         if (chartData.length > 0) {
+            // Tooltip
+            const tooltip = d3.select("body").append("div")
+                .attr("class", "tooltip")
+                .style("opacity", 0)
+                .style("position", "absolute")
+                .style("background-color", "#1f2937") // gray-800
+                .style("color", "white")
+                .style("border", "solid 1px #4f46e5") // indigo-700
+                .style("border-radius", "5px")
+                .style("padding", "10px")
+                .style("pointer-events", "none"); // To prevent tooltip from blocking mouse events
+
             const drawChart = () => {
                 const container = d3.select("#bar-chart-container");
                 // Clear previous SVG content on resize
@@ -929,15 +941,14 @@
                     .text("Candidate Applications per Job");
 
                 // Bars
+                // ===== MODIFICATION START =====
                 g.selectAll(".bar")
                     .data(chartData)
                     .enter()
                     .append("rect")
                         .attr("class", "bar")
                         .attr("x", d => x(d.title))
-                        .attr("y", d => y(d.applicant_count))
                         .attr("width", x.bandwidth())
-                        .attr("height", d => innerHeight - y(d.applicant_count))
                         .style("fill", "#6366f1") // indigo-500
                         .on("mouseover", function(event, d) {
                             d3.select(this).style("fill", "#818cf8"); // indigo-400
@@ -951,20 +962,18 @@
                         .on("mouseout", function(event, d) {
                             d3.select(this).style("fill", "#6366f1"); // indigo-500
                             tooltip.style("opacity", 0);
-                        });
+                        })
+                        // 1. Set initial state for animation
+                        .attr("y", innerHeight) // Start at the bottom (y(0) is innerHeight)
+                        .attr("height", 0)
+                        // 2. Transition to final state
+                        .transition()
+                        .duration(750) // Animation duration
+                        .delay((d, i) => i * 50) // Staggered delay
+                        .attr("y", d => y(d.applicant_count)) // Final y position
+                        .attr("height", d => innerHeight - y(d.applicant_count)); // Final height
+                // ===== MODIFICATION END =====
             };
-
-            // Tooltip
-            const tooltip = d3.select("body").append("div")
-                .attr("class", "tooltip")
-                .style("opacity", 0)
-                .style("position", "absolute")
-                .style("background-color", "#1f2937") // gray-800
-                .style("color", "white")
-                .style("border", "solid 1px #4f46e5") // indigo-700
-                .style("border-radius", "5px")
-                .style("padding", "10px")
-                .style("pointer-events", "none"); // To prevent tooltip from blocking mouse events
 
             // Initial draw
             drawChart();
