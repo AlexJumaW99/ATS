@@ -1,0 +1,72 @@
+[
+  {
+    "title": "Senior Backend Developer (Ruby on Rails)",
+    "company": "Shopify",
+    "country": "Canada",
+    "province": "Ontario",
+    "city": "Ottawa",
+    "min_salary": 120000,
+    "max_salary": 180000,
+    "opening_date": "2025-10-15T10:00:00Z",
+    "closing_date": "2025-12-15",
+    "description": "## About the Role\n\nShopify is looking for a Senior Backend Developer to join our team. You will be responsible for building and maintaining the scalable, high-performance services that power the world's largest e-commerce platform.\n\n### Responsibilities:\n\n* Design, build, and maintain efficient, reusable, and reliable Ruby code.\n* Identify bottlenecks and bugs, and devise solutions to these problems.\n* Help maintain code quality, organization, and automatization.\n* Contribute to a high-performance, distributed systems environment.\n\n### Qualifications:\n\n* 5+ years of professional software development experience.\n* Strong experience with Ruby on Rails.\n* Experience with relational databases (e.g., MySQL, PostgreSQL) and key-value stores (e.g., Redis).\n* A passion for building high-quality, scalable software.",
+    "job_type": "Full-time",
+    "created_by": 1
+  },
+  {
+    "title": "Data Scientist, AI & Machine Learning",
+    "company": "RBC",
+    "country": "Canada",
+    "province": "Ontario",
+    "city": "Toronto",
+    "min_salary": 95000,
+    "max_salary": 150000,
+    "opening_date": "2025-10-20T09:00:00Z",
+    "closing_date": "2025-12-01",
+    "description": "## About the Role\n\nJoin Borealis AI, RBC's AI research and development lab. We're looking for a Data Scientist to help us build the next generation of financial products and services using cutting-edge machine learning techniques.\n\n### Responsibilities:\n\n* Develop and deploy machine learning models to solve complex business problems.\n* Work with large, complex datasets to extract valuable insights.\n* Collaborate with engineers, product managers, and business stakeholders.\n* Stay up-to-date with the latest advancements in AI and machine learning.\n\n### Qualifications:\n\n* MSc or PhD in Computer Science, Statistics, or a related quantitative field.\n* Proven experience building and deploying machine learning models (Python, TensorFlow, PyTorch).\n* Strong programming skills and experience with data manipulation (SQL, Pandas).\n* Excellent communication and problem-solving skills.",
+    "job_type": "Full-time",
+    "created_by": 2
+  },
+  {
+    "title": "Frontend Developer (React)",
+    "company": "Lululemon",
+    "country": "Canada",
+    "province": "British Columbia",
+    "city": "Vancouver",
+    "min_salary": 90000,
+    "max_salary": 130000,
+    "opening_date": "2025-10-25T14:30:00Z",
+    "closing_date": "2025-11-30",
+    "description": "## About the Role\n\nLululemon is seeking a passionate Frontend Developer to create exceptional digital experiences for our guests. You will be a key member of our e-commerce technology team, focusing on building beautiful, high-performance, and accessible user interfaces.\n\n### Responsibilities:\n\n* Develop new user-facing features using React.js.\n* Build reusable components and front-end libraries for future use.\n* Optimize components for maximum performance across a vast array of web-capable devices and browsers.\n* Collaborate with product designers and backend engineers to translate designs into high-quality code.\n\n### Qualifications:\n\n* 3+ years of experience with modern JavaScript (ES6+) and React.\n* Strong understanding of HTML5, CSS3, and responsive design principles.\n* Experience with state management libraries (e.g., Redux, Zustand).\n* Familiarity with testing frameworks like Jest or React Testing Library.",
+    "job_type": "Contract",
+    "created_by": 3
+  },
+  {
+    "title": "DevOps Engineer",
+    "company": "Air Canada",
+    "country": "Canada",
+    "province": "Quebec",
+    "city": "Montreal",
+    "min_salary": 100000,
+    "max_salary": 160000,
+    "opening_date": "2025-11-01T08:00:00Z",
+    "closing_date": "2026-01-05",
+    "description": "## About the Role\n\nWe are looking for a DevOps Engineer to help automate and streamline our operations and processes. You will be part of a team responsible for the CI/CD pipeline, infrastructure orchestration, and monitoring of our critical systems.\n\n### Responsibilities:\n\n* Build and maintain CI/CD pipelines to automate software delivery.\n* Manage and scale our cloud infrastructure (AWS/Azure).\n* Implement and manage monitoring and alerting systems (Prometheus, Grafana, Datadog).\n* Work closely with development teams to promote DevOps best practices.\n\n### Qualifications:\n\n* Experience with CI/CD tools (e.g., Jenkins, GitLab CI, CircleCI).\n* Strong knowledge of containerization and orchestration (Docker, Kubernetes).\n* Experience with Infrastructure as Code (IaC) tools like Terraform or Ansible.\n* Proficiency in scripting languages (e.g., Python, Bash).",
+    "job_type": "Full-time",
+    "created_by": 4
+  },
+  {
+    "title": "Associate Product Manager",
+    "company": "TD Bank Group",
+    "country": "Canada",
+    "province": "Ontario",
+    "city": "Toronto",
+    "min_salary": 80000,
+    "max_salary": 110000,
+    "opening_date": "2025-11-04T11:00:00Z",
+    "closing_date": "2025-12-20",
+    "description": "## About the Role\n\nThis is an exciting opportunity for an aspiring Product Manager to join our digital banking team. You will work with a cross-functional team to define, build, and launch new features that deliver value to our customers.\n\n### Responsibilities:\n\n* Support the product lifecycle from concept to launch.\n* Gather and prioritize product and customer requirements.\n* Write clear user stories and acceptance criteria.\n* Analyze data and user feedback to inform product decisions.\n\n### Qualifications:\n\n* 1-2 years of experience in product management, business analysis, or a related role.\n* Strong analytical and problem-solving skills.\n* Excellent communication skills and ability to work in a team environment.\n* A passion for technology and building great customer experiences.",
+    "job_type": "Full-time",
+    "created_by": 5
+  }
+]

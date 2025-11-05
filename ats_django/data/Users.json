@@ -1,0 +1,72 @@
+[
+  {
+    "pk": 2,
+    "username": "sarahj",
+    "email": "sarah.johnson@example.com",
+    "password": "password123",
+    "profile_picture_path": "dummy_user_profile_pics/user1.jpg"
+  },
+  {
+    "pk": 3,
+    "username": "mlee",
+    "email": "mark.lee@example.com",
+    "password": "password123",
+    "profile_picture_path": "dummy_user_profile_pics/user2.jpg"
+  },
+  {
+    "pk": 4,
+    "username": "chen_li",
+    "email": "chen.li@example.com",
+    "password": "password123",
+    "profile_picture_path": "dummy_user_profile_pics/user3.jpg"
+  },
+  {
+    "pk": 5,
+    "username": "anita_g",
+    "email": "anita.gupta@example.com",
+    "password": "password123",
+    "profile_picture_path": "dummy_user_profile_pics/user4.jpg"
+  },
+  {
+    "pk": 6,
+    "username": "davidk",
+    "email": "david.kim@example.com",
+    "password": "password123",
+    "profile_picture_path": "dummy_user_profile_pics/user5.jpg"
+  },
+  {
+    "pk": 7,
+    "username": "lucy_m",
+    "email": "lucy.martin@example.com",
+    "password": "password123",
+    "profile_picture_path": "dummy_user_profile_pics/user6.jpg"
+  },
+  {
+    "pk": 8,
+    "username": "tom_b",
+    "email": "tom.baker@example.com",
+    "password": "password123",
+    "profile_picture_path": "dummy_user_profile_pics/user7.jpg"
+  },
+  {
+    "pk": 9,
+    "username": "f_adebayo",
+    "email": "fatima.adebayo@example.com",
+    "password": "password123",
+    "profile_picture_path": "dummy_user_profile_pics/user8.jpg"
+  },
+  {
+    "pk": 10,
+    "username": "carlosr",
+    "email": "carlos.rodriguez@example.com",
+    "password": "password123",
+    "profile_picture_path": "dummy_user_profile_pics/user9.jpg"
+  },
+  {
+    "pk": 11,
+    "username": "sophie_w",
+    "email": "sophie.wong@example.com",
+    "password": "password123",
+    "profile_picture_path": "dummy_user_profile_pics/user10.jpg"
+  }
+]
