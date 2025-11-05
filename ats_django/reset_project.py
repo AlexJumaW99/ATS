@@ -142,10 +142,132 @@ else:
     if not run_command([python_executable, 'manage.py', 'shell', '--command', superuser_script]):
         print("\n--- Failed to execute superuser creation script. Please check logs. ---")
         sys.exit(1)
-        
 
-    # 5. Run the server on port 7777
-    print("\n\n--- Step 5: Starting development server on port 7777 ---")
+
+    # 5. Load dummy data from JSON files
+    print("\n--- Step 5: Loading dummy data from data/ folder ---")
+
+    data_loading_script = """
+import os
+import json
+from django.contrib.auth import get_user_model
+from django.conf import settings
+from django.core.files import File
+from parser.models import Job, Profile
+
+User = get_user_model()
+
+USERS_FILE = 'data/Users.json'
+JOBS_FILE = 'data/Jobs.json'
+BASE_DIR = settings.BASE_DIR
+user_map = {} # To map JSON PKs to created User objects
+
+# --- Load Users ---
+try:
+    users_file_path = os.path.join(BASE_DIR, USERS_FILE)
+    with open(users_file_path, 'r') as f:
+        users_data = json.load(f)
+    
+    print(f"Found {len(users_data)} users in {USERS_FILE}.")
+    
+    for user_data in users_data:
+        username = user_data['username']
+        json_pk = user_data['pk']
+        
+        if User.objects.filter(username=username).exists():
+            print(f"User '{username}' already exists. Skipping creation, but mapping for jobs.")
+            user = User.objects.get(username=username)
+        else:
+            user = User.objects.create_user(
+                username=username,
+                email=user_data['email'],
+                password=user_data['password']
+            )
+            print(f"Created user '{username}'.")
+            
+            # Set profile picture
+            pic_path = user_data.get('profile_picture_path')
+            if pic_path:
+                # Correctly join BASE_DIR with the path from the JSON
+                full_pic_path = os.path.join(BASE_DIR, pic_path)
+                pic_name = os.path.basename(pic_path)
+                
+                if os.path.exists(full_pic_path):
+                    try:
+                        with open(full_pic_path, 'rb') as f:
+                            user.profile.profile_picture.save(pic_name, File(f), save=True)
+                        print(f"  > Set profile picture from {pic_path}")
+                    except Exception as e:
+                        print(f"  > !!! Error setting profile picture for {username}: {e}")
+                else:
+                    print(f"  > !!! Warning: Profile picture path not found: {full_pic_path}")
+        
+        # Map the JSON PK to the new User object
+        user_map[json_pk] = user
+
+    print("\\n--- User loading complete. ---")
+
+
+    # --- Load Jobs ---
+    try:
+        jobs_file_path = os.path.join(BASE_DIR, JOBS_FILE)
+        with open(jobs_file_path, 'r') as f:
+            jobs_data = json.load(f)
+        
+        print(f"Found {len(jobs_data)} jobs in {JOBS_FILE}.")
+        
+        for job_data in jobs_data:
+            title = job_data['title']
+            company = job_data['company']
+            
+            if Job.objects.filter(title=title, company=company).exists():
+                print(f"Job '{title}' at '{company}' already exists. Skipping.")
+                continue
+                
+            # Get the user object using the mapped PK
+            creator_pk = job_data['created_by']
+            creator = user_map.get(creator_pk)
+            
+            if not creator:
+                print(f"!!! Warning: Could not find user with JSON PK '{creator_pk}' for job '{title}'. Skipping job.")
+                continue
+                
+            Job.objects.create(
+                title=title,
+                company=company,
+                country=job_data['country'],
+                province=job_data['province'],
+                city=job_data['city'],
+                min_salary=job_data['min_salary'],
+                max_salary=job_data['max_salary'],
+                opening_date=job_data['opening_date'],
+                closing_date=job_data['closing_date'],
+                description=job_data['description'],
+                job_type=job_data['job_type'],
+                created_by=creator
+            )
+            print(f"Created job '{title}' linked to user '{creator.username}'.")
+            
+        print("\\n--- Job loading complete. ---")
+
+    except FileNotFoundError:
+        print(f"{JOBS_FILE} not found. Skipping job loading.")
+    except Exception as e:
+        print(f"An error occurred loading jobs: {e}")
+
+except FileNotFoundError:
+    print(f"{USERS_FILE} not found. Skipping user and job loading.")
+except Exception as e:
+    print(f"An error occurred loading users: {e}")
+"""
+
+    if not run_command([python_executable, 'manage.py', 'shell', '--command', data_loading_script]):
+        print("\n--- Failed to execute data loading script. Please check logs. ---")
+        sys.exit(1)
+
+
+    # 6. Run the server on port 7777
+    print("\n\n--- Step 6: Starting development server on port 7777 ---")
     print("All steps completed. The server is now running.")
     print("Press CTRL+C to stop the server.")
     
