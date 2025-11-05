@@ -4,7 +4,7 @@ from django.urls import reverse
 from .models import Candidate, Job, Profile
 from .gemini_parser import process_resume
 from django.http import JsonResponse
-from django.db.models import Q, Count  # <-- Import Count here
+from django.db.models import Q, Count  # <-- Count is already here
 from datetime import date
 from .forms import JobForm, ProfileUpdateForm
 import json
@@ -93,7 +93,36 @@ def parser_home(request):
     
     # Convert QuerySet to list and then to JSON
     candidate_chart_data = json.dumps(list(job_applicant_counts))
-    # --- End New Data ---
+    
+    # --- Data for Top Degrees (Vertical Bar Chart) ---
+    # We use the 'candidates' queryset, which is already filtered for the selected job.
+    top_degrees_data = list(
+        candidates.filter(degree__isnull=False).exclude(degree__exact='')
+        .values('degree')
+        .annotate(count=Count('degree'))
+        .order_by('-count')[:10] # Get top 10
+    )
+    
+    # --- Data for Top Schools (Horizontal Bar Chart) ---
+    # We need to combine counts from 'degree_school' and 'diploma_school'
+    school_counts = {}
+    
+    # 1. Get degree school counts
+    degree_schools = candidates.filter(degree_school__isnull=False).exclude(degree_school__exact='').values('degree_school').annotate(count=Count('degree_school'))
+    for item in degree_schools:
+        school_name = item['degree_school']
+        school_counts[school_name] = school_counts.get(school_name, 0) + item['count']
+    
+    # 2. Get diploma school counts
+    diploma_schools = candidates.filter(diploma_school__isnull=False).exclude(diploma_school__exact='').values('diploma_school').annotate(count=Count('diploma_school'))
+    for item in diploma_schools:
+        school_name = item['diploma_school']
+        school_counts[school_name] = school_counts.get(school_name, 0) + item['count']
+
+    # 3. Convert to list of dicts for D3
+    top_schools_data = [{'school': k, 'count': v} for k, v in school_counts.items()]
+    # 4. Sort and take top 10
+    top_schools_data = sorted(top_schools_data, key=lambda x: x['count'], reverse=True)[:10]
 
     context = {
         'jobs': jobs,
@@ -105,7 +134,10 @@ def parser_home(request):
         'total_jobs': total_jobs,
         'total_candidates': total_candidates,
         'top_applicants': top_applicants,
-        'candidate_chart_data': candidate_chart_data, # <-- Add new data to context
+        'candidate_chart_data': candidate_chart_data,
+        # --- Add new chart data to context ---
+        'top_degrees_chart_data': json.dumps(top_degrees_data),
+        'top_schools_chart_data': json.dumps(top_schools_data),
     }
 
     return render(request, 'parser/parser_home.html', context)

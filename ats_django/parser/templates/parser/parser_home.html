@@ -311,7 +311,24 @@
                 <svg id="bar-chart"></svg>
               </div>
             </div>
+
+            <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div>
+                <h3 class="text-base font-semibold text-white">Top 10 Degrees (for this job)</h3>
+                <div id="top-degrees-chart-container" class="mt-4 p-4 bg-gray-800/75 rounded-lg shadow-sm inset-ring inset-ring-white/10">
+                  <svg id="top-degrees-chart"></svg>
+                </div>
+              </div>
+              <div>
+                <h3 class="text-base font-semibold text-white">Top 10 Schools (for this job)</h3>
+                <div id="top-schools-chart-container" class="mt-4 p-4 bg-gray-800/75 rounded-lg shadow-sm inset-ring inset-ring-white/10">
+                  <svg id="top-schools-chart"></svg>
+                </div>
+              </div>
             </div>
+            </div>
+
+            
         
         
         <div id="jobs-content" style="display: none;">
@@ -994,6 +1011,207 @@
                 .text("No candidate data available to display chart.")
                 .style("color", "#9ca3af"); // gray-400
         }
+
+
+        // ================================================
+        // ===== ADD THE FOLLOWING NEW JAVASCRIPT =========
+        // ================================================
+
+        // --- D3 SCRIPT FOR TOP DEGREES (VERTICAL) ---
+        const topDegreesData = JSON.parse('{{ top_degrees_chart_data|safe }}');
+        
+        if (topDegreesData.length > 0) {
+            const drawTopDegreesChart = () => {
+                // Use existing tooltip
+                const tooltip = d3.select("body").select(".tooltip");
+                
+                const container = d3.select("#top-degrees-chart-container");
+                d3.select("#top-degrees-chart").selectAll("*").remove();
+                
+                const svg = d3.select("#top-degrees-chart");
+                
+                const width = parseInt(container.style("width"));
+                const height = 400;
+                const margin = { top: 40, right: 30, bottom: 120, left: 50 }; // Increased bottom for labels
+                
+                const innerWidth = width - margin.left - margin.right;
+                const innerHeight = height - margin.top - margin.bottom;
+
+                svg.attr("width", width).attr("height", height);
+
+                const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+                const x = d3.scaleBand()
+                    .domain(topDegreesData.map(d => d.degree))
+                    .range([0, innerWidth])
+                    .padding(0.2);
+
+                const y = d3.scaleLinear()
+                    .domain([0, d3.max(topDegreesData, d => d.count) || 1])
+                    .range([innerHeight, 0]);
+
+                g.append("g")
+                    .attr("transform", `translate(0,${innerHeight})`)
+                    .call(d3.axisBottom(x))
+                    .selectAll("text")
+                        .attr("transform", "rotate(-45)")
+                        .style("text-anchor", "end")
+                        .style("fill", "#9ca3af");
+
+                g.append("g")
+                    .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format("d")))
+                    .selectAll("text")
+                        .style("fill", "#9ca3af");
+
+                g.append("g")
+                    .attr("class", "grid")
+                    .call(d3.axisLeft(y).ticks(5).tickSize(-innerWidth).tickFormat(""))
+                    .selectAll("line")
+                    .style("stroke", "rgba(255, 255, 255, 0.1)");
+
+                svg.append("text")
+                    .attr("x", width / 2)
+                    .attr("y", margin.top / 2 + 5)
+                    .attr("text-anchor", "middle")
+                    .style("font-size", "16px")
+                    .style("font-weight", "600")
+                    .style("fill", "white")
+                    .text("Top 10 Degrees");
+
+                g.selectAll(".bar")
+                    .data(topDegreesData)
+                    .enter()
+                    .append("rect")
+                        .attr("class", "bar")
+                        .attr("x", d => x(d.degree))
+                        .attr("width", x.bandwidth())
+                        .style("fill", "#6366f1")
+                        .on("mouseover", function(event, d) {
+                            d3.select(this).style("fill", "#818cf8");
+                            tooltip.style("opacity", 1);
+                        })
+                        .on("mousemove", function(event, d) {
+                            tooltip.html(`<strong>${d.degree}</strong><br>${d.count} candidates`)
+                                   .style("left", (event.pageX + 15) + "px")
+                                   .style("top", (event.pageY - 28) + "px");
+                        })
+                        .on("mouseout", function(event, d) {
+                            d3.select(this).style("fill", "#6366f1");
+                            tooltip.style("opacity", 0);
+                        })
+                        .attr("y", innerHeight)
+                        .attr("height", 0)
+                        .transition()
+                        .duration(750)
+                        .delay((d, i) => i * 50)
+                        .attr("y", d => y(d.count))
+                        .attr("height", d => innerHeight - y(d.count));
+            };
+            drawTopDegreesChart();
+            window.addEventListener('resize', drawTopDegreesChart);
+        } else {
+            d3.select("#top-degrees-chart-container").append("p")
+                .text("No degree data for this job.")
+                .style("color", "#9ca3af");
+        }
+
+        // --- D3 SCRIPT FOR TOP SCHOOLS (HORIZONTAL) ---
+        const topSchoolsData = JSON.parse('{{ top_schools_chart_data|safe }}');
+        
+        if (topSchoolsData.length > 0) {
+            const drawTopSchoolsChart = () => {
+                // Use existing tooltip
+                const tooltip = d3.select("body").select(".tooltip");
+
+                const container = d3.select("#top-schools-chart-container");
+                d3.select("#top-schools-chart").selectAll("*").remove();
+                
+                const svg = d3.select("#top-schools-chart");
+                
+                const width = parseInt(container.style("width"));
+                const height = 400;
+                // Adjust left margin to make space for long school names
+                const margin = { top: 40, right: 30, bottom: 40, left: 150 };
+                
+                const innerWidth = width - margin.left - margin.right;
+                const innerHeight = height - margin.top - margin.bottom;
+
+                svg.attr("width", width).attr("height", height);
+
+                const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+                const x = d3.scaleLinear()
+                    .domain([0, d3.max(topSchoolsData, d => d.count) || 1])
+                    .range([0, innerWidth]);
+
+                const y = d3.scaleBand()
+                    .domain(topSchoolsData.map(d => d.school).reverse()) // .reverse() for horizontal bar
+                    .range([innerHeight, 0])
+                    .padding(0.2);
+
+                g.append("g")
+                    .attr("transform", `translate(0,${innerHeight})`)
+                    .call(d3.axisBottom(x).ticks(5).tickFormat(d3.format("d")))
+                    .selectAll("text")
+                        .style("fill", "#9ca3af");
+
+                g.append("g")
+                    .call(d3.axisLeft(y))
+                    .selectAll("text")
+                        .style("fill", "#9ca3af");
+                
+                g.append("g")
+                    .attr("class", "grid")
+                    .call(d3.axisBottom(x).ticks(5).tickSize(innerHeight).tickFormat(""))
+                    .selectAll("line")
+                    .style("stroke", "rgba(255, 255, 255, 0.1)");
+
+                svg.append("text")
+                    .attr("x", width / 2)
+                    .attr("y", margin.top / 2 + 5)
+                    .attr("text-anchor", "middle")
+                    .style("font-size", "16px")
+                    .style("font-weight", "600")
+                    .style("fill", "white")
+                    .text("Top 10 Schools");
+
+                g.selectAll(".bar")
+                    .data(topSchoolsData)
+                    .enter()
+                    .append("rect")
+                        .attr("class", "bar")
+                        .attr("y", d => y(d.school))
+                        .attr("height", y.bandwidth())
+                        .style("fill", "#6366f1")
+                        .on("mouseover", function(event, d) {
+                            d3.select(this).style("fill", "#818cf8");
+                            tooltip.style("opacity", 1);
+                        })
+                        .on("mousemove", function(event, d) {
+                            tooltip.html(`<strong>${d.school}</strong><br>${d.count} candidates`)
+                                   .style("left", (event.pageX + 15) + "px")
+                                   .style("top", (event.pageY - 28) + "px");
+                        })
+                        .on("mouseout", function(event, d) {
+                            d3.select(this).style("fill", "#6366f1");
+                            tooltip.style("opacity", 0);
+                        })
+                        .attr("x", 0)
+                        .attr("width", 0)
+                        .transition()
+                        .duration(750)
+                        .delay((d, i) => i * 50)
+                        .attr("width", d => x(d.count))
+                        .attr("x", 0);
+            };
+            drawTopSchoolsChart();
+            window.addEventListener('resize', drawTopSchoolsChart);
+        } else {
+            d3.select("#top-schools-chart-container").append("p")
+                .text("No school data for this job.")
+                .style("color", "#9ca3af");
+        }
+
         // --- END D3 SCRIPT ---
     });
 </script>
