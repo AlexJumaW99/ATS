@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Rounded Cube - Click to Face</title>
     <style>
         body {
@@ -31,6 +31,7 @@
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        // NEW: Import the geometry for rounded edges
         import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
         // 1. Core Three.js Setup
@@ -39,9 +40,11 @@
         const renderer = new THREE.WebGLRenderer({
             canvas: document.getElementById('webgl-canvas'),
             alpha: true,
+            // NEW: This enables anti-aliasing to smooth pixelated edges
             antialias: true 
         });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        // NEW: This renders at your device's native screen resolution (for HDPI/Retina)
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         
         // 2. Add OrbitControls for interactivity
@@ -71,6 +74,7 @@
         });
 
         // 4. Geometry and Mesh
+        // NEW: Use RoundedBoxGeometry(width, height, depth, segments, radius)
         const geometry = new RoundedBoxGeometry(2, 2, 2, 6, 0.05); 
         const cube = new THREE.Mesh(geometry, materials);
         scene.add(cube);
@@ -85,15 +89,10 @@
             controls.update();
 
             if (isAnimating) {
-                // Slerp (spherically linear interpolate) to the target rotation
                 cube.quaternion.slerp(targetRotation, 0.05);
-                
-                // Stop animating when we are very close
                 if (cube.quaternion.angleTo(targetRotation) < 0.01) {
                     cube.quaternion.copy(targetRotation);
                     isAnimating = false;
-                    // NEW: Re-enable auto-rotate after animation is done
-                    controls.autoRotate = true;
                 }
             }
             renderer.render(scene, camera);
@@ -104,10 +103,11 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            // NEW: Also update the pixel ratio on resize
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         });
 
-        // 7. Handle Click Event - (MODIFIED)
+        // 7. Handle Click Event
         function onClick(event) {
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -118,20 +118,25 @@
             if (intersects.length > 0) {
                 const intersect = intersects[0];
                 if (intersect.face) {
-                    // This is the normal of the face in *local* space (e.g., (1,0,0) for +X)
-                    const faceNormal = intersect.face.normal.clone();
-                    
-                    // This is the vector we want the face to point to (the camera's view)
+                    const faceNormal = intersect.face.normal;
                     const targetVector = new THREE.Vector3(0, 0, 1); 
 
-                    // --- THIS IS THE SIMPLIFIED LOGIC ---
-                    // Calculate the *absolute* rotation needed to map the
-                    // local face normal to the world target vector.
-                    targetRotation.setFromUnitVectors(faceNormal, targetVector);
-                    // ------------------------------------
+                    // Clone the cube's current world quaternion to start from
+                    const startQuaternion = cube.quaternion.clone();
 
-                    controls.autoRotate = false; // Stop auto-rotation
-                    isAnimating = true;          // Start the slerp animation
+                    // Create a temporary matrix to get the face's world-space normal
+                    const tempMatrix = new THREE.Matrix4();
+                    tempMatrix.makeRotationFromQuaternion(startQuaternion);
+                    const worldNormal = faceNormal.clone().applyMatrix4(tempMatrix).normalize();
+
+                    // Calculate the rotation needed to align the world normal with the target vector
+                    targetRotation.setFromUnitVectors(worldNormal, targetVector);
+
+                    // Combine with the cube's current rotation
+                    targetRotation.multiply(startQuaternion);
+
+                    controls.autoRotate = false;
+                    isAnimating = true;
                 }
             }
         }
