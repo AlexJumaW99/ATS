@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Rounded Cube - Right-Side-Up Snap</title>
+    <title>3D Dice Roll - Physics</title>
     <style>
         body {
             margin: 0;
@@ -22,11 +22,27 @@
             height: 200px;
             background-color: rgba(255, 255, 255, 0.3);
             border: 1px solid #ccc;
-            pointer-events: none; /* Allows clicking through it */
+            pointer-events: none; 
+        }
+        /* NEW: Button styling */
+        #roll-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #ffffff;
+            border: 2px solid #333;
+            border-radius: 5px;
+            z-index: 10;
         }
     </style>
 </head>
 <body>
+    <button id="roll-button">Roll the Dice</button>
+
     <div id="map-view"></div>
     <canvas id="webgl-canvas"></canvas>
 
@@ -34,7 +50,8 @@
         {
             "imports": {
                 "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/"
+                "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/",
+                "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"
             }
         }
     </script>
@@ -42,10 +59,13 @@
     <script type="module">
         import * as THREE from 'three';
         import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+        // NEW: Import physics engine
+        import * as CANNON from 'cannon-es';
 
-        // 1. Core Three.js Setup (Unchanged)
+        // 1. Core Three.js Setup
         const scene = new THREE.Scene();
         const mapWidth = 200, mapHeight = 200;
+        const clock = new THREE.Clock(); // NEW: For physics delta time
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.z = 4; 
@@ -64,17 +84,17 @@
         
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
-        let isAnimating = false; // Is it "snapping-to-face"?
-        const targetRotation = new THREE.Quaternion();
 
-        // --- State variables for manual drag-to-rotate (Unchanged) ---
-        let isDragging = false;
+        // --- All State Variables ---
+        let isAnimating = false;    // Is it "snapping-to-face"?
+        let isDragging = false;     // Is the user holding the mouse down?
+        let isRolling = false;      // Is the physics roll animation active?
+        
+        const targetRotation = new THREE.Quaternion();
         const startMousePosition = new THREE.Vector2(); 
         const previousMousePosition = new THREE.Vector2(); 
         const deltaMousePosition = new THREE.Vector2();
-        const deltaRotation = new THREE.Quaternion(); // Re-usable quaternion
-
-        // --- State variables for inertia (Unchanged) ---
+        const deltaRotation = new THREE.Quaternion();
         const angularVelocity = new THREE.Vector2(0, 0);
         const dampingFactor = 0.95; 
 
@@ -102,45 +122,127 @@
         const cameraHelperSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
         scene.add(cameraHelperSphere); 
 
-        // 5. Animation Loop (Unchanged)
+        // --- NEW: 5. Physics Setup ---
+        const world = new CANNON.World({
+            gravity: new CANNON.Vec3(0, -9.82, 0) // Standard gravity
+        });
+
+        // Create a physics material for the cube and floor
+        const cubePhysMaterial = new CANNON.Material('cubeMaterial');
+        const floorPhysMaterial = new CANNON.Material('floorMaterial');
+
+        // Define the contact properties (friction and bounciness)
+        const contactMaterial = new CANNON.ContactMaterial(cubePhysMaterial, floorPhysMaterial, {
+            friction: 0.1,      // How much it slides
+            restitution: 0.7    // How much it bounces (0=no bounce, 1=perfect bounce)
+        });
+        world.addContactMaterial(contactMaterial);
+
+        // Create the physics body for the cube
+        // Note: Cannon.js uses half-extents (radius) for its box shape
+        const cubeShape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
+        const cubeBody = new CANNON.Body({
+            mass: 1, // It has mass, so it's affected by gravity
+            shape: cubeShape,
+            material: cubePhysMaterial
+        });
+        world.addBody(cubeBody);
+
+        // Create the physics body for the floor
+        const floorShape = new CANNON.Plane();
+        const floorBody = new CANNON.Body({
+            mass: 0, // Mass 0 makes it static
+            shape: floorShape,
+            material: floorPhysMaterial
+        });
+        // Rotate the plane to be horizontal
+        floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+        floorBody.position.set(0, -2, 0); // Position the floor 2 units below the cube
+        world.addBody(floorBody);
+
+        // --- NEW: Helper array of face normals for random snap ---
+        const faceNormals = [
+            new THREE.Vector3(1, 0, 0),  // Right
+            new THREE.Vector3(-1, 0, 0), // Left
+            new THREE.Vector3(0, 1, 0),  // Top
+            new THREE.Vector3(0, -1, 0), // Bottom
+            new THREE.Vector3(0, 0, 1),  // Front
+            new THREE.Vector3(0, 0, -1)  // Back
+        ];
+
+        // 6. Animation Loop (Heavily Modified)
         function animate() {
             requestAnimationFrame(animate);
+            const delta = clock.getDelta(); // Get time since last frame
             
             cameraHelperSphere.position.copy(camera.position);
 
-            // --- Apply rotational inertia (damping) ---
-            if (!isDragging && !isAnimating && angularVelocity.lengthSq() > 0.0001) {
-                const rotationSpeed = 0.005;
+            // --- Step the physics world ---
+            world.step(1 / 60, delta); // Fixed time step
 
-                const deltaRotationY = new THREE.Quaternion().setFromAxisAngle(
-                    new THREE.Vector3(0, 1, 0),
-                    angularVelocity.x * rotationSpeed
-                );
-                
-                const deltaRotationX = new THREE.Quaternion().setFromAxisAngle(
-                    new THREE.Vector3(1, 0, 0),
-                    angularVelocity.y * rotationSpeed
-                );
+            // --- State machine for animation ---
+            
+            if (isRolling) {
+                // --- PHYSICS IS IN CONTROL ---
+                // Copy the physics body's position and rotation to the three.js mesh
+                cube.position.copy(cubeBody.position);
+                cube.quaternion.copy(cubeBody.quaternion);
 
-                deltaRotation.multiplyQuaternions(deltaRotationY, deltaRotationX);
-                cube.quaternion.multiplyQuaternions(deltaRotation, cube.quaternion);
-                angularVelocity.multiplyScalar(dampingFactor);
+                // Check if the cube has stopped moving (gone to sleep)
+                if (cubeBody.sleepState === CANNON.Body.SLEEPING) {
+                    isRolling = false;
+                    cubeBody.angularVelocity.set(0,0,0); // Force stop
+                    cubeBody.velocity.set(0,0,0);
 
-                if (angularVelocity.lengthSq() <= 0.0001) {
-                    angularVelocity.set(0, 0);
+                    // --- The roll is over, pick a random face to show ---
+                    // Pick a random normal from our list
+                    const randomNormal = faceNormals[Math.floor(Math.random() * faceNormals.length)];
+                    
+                    // Use our existing logic to calculate the snap rotation
+                    calculateSnapRotation(randomNormal); 
+                    isAnimating = true; // Start the slerp animation
                 }
-            }
 
-            // --- Apply "snap-to-face" animation ---
-            if (isAnimating) {
+            } else if (isAnimating) {
+                // --- "SNAP-TO-FACE" ANIMATION IS IN CONTROL ---
+                // Slerp rotation
                 cube.quaternion.slerp(targetRotation, 0.05);
-                if (cube.quaternion.angleTo(targetRotation) < 0.01) {
+                // NEW: Slerp position back to origin
+                cube.position.lerp(new THREE.Vector3(0, 0, 0), 0.05);
+
+                // Check for completion
+                if (cube.quaternion.angleTo(targetRotation) < 0.01 && cube.position.length() < 0.01) {
                     cube.quaternion.copy(targetRotation);
+                    cube.position.set(0, 0, 0);
                     isAnimating = false;
                 }
+                
+                // Sync three.js state back to physics body
+                cubeBody.position.copy(cube.position);
+                cubeBody.quaternion.copy(cube.quaternion);
+
+            } else if (!isDragging) {
+                // --- "INERTIA" (DAMPING) IS IN CONTROL ---
+                if (angularVelocity.lengthSq() > 0.0001) {
+                    const rotationSpeed = 0.005;
+                    const deltaRotationY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), angularVelocity.x * rotationSpeed);
+                    const deltaRotationX = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), angularVelocity.y * rotationSpeed);
+                    deltaRotation.multiplyQuaternions(deltaRotationY, deltaRotationX);
+                    cube.quaternion.multiplyQuaternions(deltaRotation, cube.quaternion);
+                    angularVelocity.multiplyScalar(dampingFactor);
+                } else {
+                    angularVelocity.set(0, 0);
+                }
+                // Sync three.js state back to physics body
+                cubeBody.quaternion.copy(cube.quaternion);
+
+            } else {
+                // --- USER DRAG IS IN CONTROL (via onMouseMove) ---
+                // Sync three.js state back to physics body
+                cubeBody.quaternion.copy(cube.quaternion);
             }
 
-            // --- Render logic (Unchanged) ---
+            // --- Render logic (unchanged) ---
             renderer.setScissorTest(true);
             renderer.setScissor(0, 0, window.innerWidth, window.innerHeight);
             renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
@@ -151,7 +253,7 @@
             renderer.setScissorTest(false);
         }
 
-        // 6. Handle Window Resizing (Unchanged)
+        // 7. Handle Window Resizing (Unchanged)
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -159,24 +261,34 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         });
 
-        // 7. --- Mouse Controls ---
-        // (onMouseDown and onMouseMove are unchanged)
-
+        // 8. --- Mouse Controls (Modified) ---
         window.addEventListener('mousedown', onMouseDown);
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('mouseup', onMouseUp);
 
         function onMouseDown(event) {
             const mapBox = document.getElementById('map-view').getBoundingClientRect();
-            if (
+            if (event.target.id === 'roll-button' || (
                 event.clientX >= mapBox.left && event.clientX <= mapBox.right &&
                 event.clientY >= mapBox.top && event.clientY <= mapBox.bottom
-            ) {
-                return;
+            )) {
+                return; // Ignore clicks on button or map
             }
-            isDragging = true;
+            
+            // --- NEW: Stop all animations on click ---
+            isRolling = false;
             isAnimating = false;
+            isDragging = true;
             angularVelocity.set(0, 0); 
+
+            // --- NEW: "Catch" the cube! ---
+            // Instantly sync the physics body to the mesh, wherever it is.
+            cubeBody.position.copy(cube.position);
+            cubeBody.quaternion.copy(cube.quaternion);
+            // Stop any physics motion
+            cubeBody.angularVelocity.set(0,0,0);
+            cubeBody.velocity.set(0,0,0);
+
             startMousePosition.set(event.clientX, event.clientY);
             previousMousePosition.set(event.clientX, event.clientY);
         }
@@ -188,102 +300,107 @@
                 event.clientX - previousMousePosition.x,
                 event.clientY - previousMousePosition.y
             );
-            
             const rotationSpeed = 0.005;
-            
-            const deltaRotationY = new THREE.Quaternion().setFromAxisAngle(
-                new THREE.Vector3(0, 1, 0),
-                deltaMousePosition.x * rotationSpeed
-            );
-            const deltaRotationX = new THREE.Quaternion().setFromAxisAngle(
-                new THREE.Vector3(1, 0, 0),
-                deltaMousePosition.y * rotationSpeed
-            );
-            
+            const deltaRotationY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), deltaMousePosition.x * rotationSpeed);
+            const deltaRotationX = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), deltaMousePosition.y * rotationSpeed);
             deltaRotation.multiplyQuaternions(deltaRotationY, deltaRotationX);
             cube.quaternion.multiplyQuaternions(deltaRotation, cube.quaternion);
             previousMousePosition.set(event.clientX, event.clientY);
             angularVelocity.copy(deltaMousePosition);
         }
 
-        // --- NEW: Modified onMouseUp function ---
         function onMouseUp(event) {
             if (!isDragging) return; 
-            
             isDragging = false;
             
             const dragDistance = startMousePosition.distanceTo(
                 new THREE.Vector2(event.clientX, event.clientY)
             );
             
-            // If it was a CLICK:
-            if (dragDistance < 5) {
-                angularVelocity.set(0, 0); // Stop inertia
-            
+            if (dragDistance < 5) { // CLICK
+                angularVelocity.set(0, 0); 
                 mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
                 mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
                 raycaster.setFromCamera(mouse, camera);
                 const intersects = raycaster.intersectObjects([cube]);
 
                 if (intersects.length > 0) {
                     const intersect = intersects[0];
                     if (intersect.face) {
-                        
-                        // --- START: New "Right-Side-Up" Logic ---
-                        
-                        // 1. Define Target Basis (what we want)
-                        // We want the clicked face to point at the camera (0,0,1)
-                        // and its "up" to be the world "up" (0,1,0).
-                        const targetNormal = new THREE.Vector3(0, 0, 1);
-                        const targetUp = new THREE.Vector3(0, 1, 0);
-                        const targetRight = new THREE.Vector3().crossVectors(targetUp, targetNormal).normalize();
-                        // Create the target orientation matrix
-                        const targetMatrix = new THREE.Matrix4().makeBasis(targetRight, targetUp, targetNormal);
-
-                        // 2. Define Source Basis (what we clicked)
-                        // This is based on the cube's *local* geometry
-                        const sourceNormal = intersect.face.normal.clone();
-                        let sourceUp = new THREE.Vector3(0, 1, 0); // Cube's default local "up"
-
-                        // 3. Handle Edge Case: Clicking top or bottom face
-                        // If the clicked normal is parallel to the "up" vector, we have a problem.
-                        if (Math.abs(sourceNormal.y) > 0.99) {
-                            // The clicked face is top or bottom.
-                            // We must pick a *different* "up" vector. Let's use the cube's local "front" (0,0,1).
-                            // We use "back" for the top face and "front" for the bottom face
-                            // to make the rotation predictable.
-                            if (sourceNormal.y > 0) {
-                                sourceUp.set(0, 0, -1); // Top face's "up" will be local "back"
-                            } else {
-                                sourceUp.set(0, 0, 1);  // Bottom face's "up" will be local "front"
-                            }
-                        }
-
-                        // 4. Create the source orientation matrix
-                        // We use Gram-Schmidt orthogonalization to ensure a valid rotation matrix
-                        const sourceRight = new THREE.Vector3().crossVectors(sourceUp, sourceNormal).normalize();
-                        const sourceUpOrtho = new THREE.Vector3().crossVectors(sourceNormal, sourceRight).normalize();
-                        const sourceMatrix = new THREE.Matrix4().makeBasis(sourceRight, sourceUpOrtho, sourceNormal);
-
-                        // 5. Calculate the rotation
-                        // We need the rotation that maps Source -> Target.
-                        // R * sourceMatrix = targetMatrix
-                        // R = targetMatrix * inverse(sourceMatrix)
-                        const sourceMatrixInverse = sourceMatrix.clone().invert();
-                        const finalMatrix = new THREE.Matrix4().multiplyMatrices(targetMatrix, sourceMatrixInverse);
-
-                        // 6. Set the *absolute* target rotation
-                        targetRotation.setFromRotationMatrix(finalMatrix);
-                        
-                        // --- END: New "Right-Side-Up" Logic ---
-
-                        isAnimating = true; // Start the slerp animation
+                        // --- Use the refactored snap logic ---
+                        calculateSnapRotation(intersect.face.normal);
+                        isAnimating = true; 
                     }
                 }
             }
-            // If it was a DRAG (dragDistance >= 5), we do nothing.
-            // The `angularVelocity` is set, and the `animate` loop will handle it.
+            // If it was a DRAG, we do nothing - the inertia logic in animate() will take over.
+        }
+
+        // --- NEW: 9. Button "Roll" Logic ---
+        document.getElementById('roll-button').addEventListener('click', () => {
+            // Stop other animations
+            isAnimating = false;
+            isDragging = false;
+            angularVelocity.set(0, 0);
+            
+            // Reset the cube's position in the physics world
+            cubeBody.position.set(0, 3, 0); // Place it "up"
+            cubeBody.quaternion.copy(cube.quaternion); // Start from current orientation
+
+            // Apply a random "throw" (linear velocity)
+            cubeBody.velocity.set(
+                (Math.random() - 0.5) * 4, // Random X push
+                2,                         // Upward push
+                (Math.random() - 0.5) * 4  // Random Z push
+            );
+
+            // Apply a random "tumble" (angular velocity)
+            cubeBody.angularVelocity.set(
+                (Math.random() - 0.5) * 20, // Random X tumble
+                (Math.random() - 0.5) * 20, // Random Y tumble
+                (Math.random() - 0.5) * 20  // Random Z tumble
+            );
+
+            // Wake up the body (in case it was sleeping) and set the state
+            cubeBody.wakeUp();
+            isRolling = true;
+        });
+
+        // --- NEW: 10. Refactored Snap Logic ---
+        /**
+         * Calculates the "right-side-up" target quaternion for a given local face normal.
+         * Sets the global `targetRotation` variable.
+         */
+        function calculateSnapRotation(sourceNormal) {
+            // 1. Define Target Basis (what we want)
+            const targetNormal = new THREE.Vector3(0, 0, 1);
+            const targetUp = new THREE.Vector3(0, 1, 0);
+            const targetRight = new THREE.Vector3().crossVectors(targetUp, targetNormal).normalize();
+            const targetMatrix = new THREE.Matrix4().makeBasis(targetRight, targetUp, targetNormal);
+
+            // 2. Define Source Basis (what we have)
+            let sourceUp = new THREE.Vector3(0, 1, 0); // Cube's local "up"
+
+            // 3. Handle Edge Case: Clicking top or bottom face
+            if (Math.abs(sourceNormal.y) > 0.99) {
+                if (sourceNormal.y > 0) {
+                    sourceUp.set(0, 0, -1); // Top face's "up" is local "back"
+                } else {
+                    sourceUp.set(0, 0, 1);  // Bottom face's "up" is local "front"
+                }
+            }
+
+            // 4. Create source matrix (using Gram-Schmidt orthogonalization)
+            const sourceRight = new THREE.Vector3().crossVectors(sourceUp, sourceNormal).normalize();
+            const sourceUpOrtho = new THREE.Vector3().crossVectors(sourceNormal, sourceRight).normalize();
+            const sourceMatrix = new THREE.Matrix4().makeBasis(sourceRight, sourceUpOrtho, sourceNormal);
+
+            // 5. Calculate rotation (R = Target * Inverse(Source))
+            const sourceMatrixInverse = sourceMatrix.clone().invert();
+            const finalMatrix = new THREE.Matrix4().multiplyMatrices(targetMatrix, sourceMatrixInverse);
+
+            // 6. Set the *absolute* target rotation
+            targetRotation.setFromRotationMatrix(finalMatrix);
         }
 
         // Start the animation
