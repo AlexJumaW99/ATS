@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <title>3D Rounded Cube - Click to Face</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            display: block;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="webgl-canvas"></canvas>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+        // 1. Core Three.js Setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('webgl-canvas'),
+            alpha: true,
+            antialias: true 
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        
+        // 2. Add OrbitControls for interactivity
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; 
+        controls.enableZoom = false; 
+        controls.autoRotate = true; 
+        controls.autoRotateSpeed = 2.0;
+
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let isAnimating = false;
+        const targetRotation = new THREE.Quaternion();
+
+        // 3. Textures and Materials
+        const imageUrls = [];
+        for (let i = 0; i < 6; i++) {
+            imageUrls.push(`https://picsum.photos/300/300?random=${i}`);
+        }
+
+        const textureLoader = new THREE.TextureLoader();
+        const materials = imageUrls.map(url => {
+            return new THREE.MeshBasicMaterial({
+                map: textureLoader.load(url),
+                side: THREE.DoubleSide 
+            });
+        });
+
+        // 4. Geometry and Mesh
+        const geometry = new RoundedBoxGeometry(2, 2, 2, 6, 0.05); 
+        const cube = new THREE.Mesh(geometry, materials);
+        scene.add(cube);
+
+        // Position the camera
+        camera.position.z = 4;
+
+        // 5. Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            controls.update();
+
+            if (isAnimating) {
+                // Slerp (spherically linear interpolate) to the target rotation
+                cube.quaternion.slerp(targetRotation, 0.05);
+                
+                // Stop animating when we are very close
+                if (cube.quaternion.angleTo(targetRotation) < 0.01) {
+                    cube.quaternion.copy(targetRotation);
+                    isAnimating = false;
+                    // NEW: Re-enable auto-rotate after animation is done
+                    controls.autoRotate = true;
+                }
+            }
+            renderer.render(scene, camera);
+        }
+
+        // 6. Handle Window Resizing
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        });
+
+        // 7. Handle Click Event - (MODIFIED)
+        function onClick(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects([cube]);
+
+            if (intersects.length > 0) {
+                const intersect = intersects[0];
+                if (intersect.face) {
+                    // This is the normal of the face in *local* space (e.g., (1,0,0) for +X)
+                    const faceNormal = intersect.face.normal.clone();
+                    
+                    // This is the vector we want the face to point to (the camera's view)
+                    const targetVector = new THREE.Vector3(0, 0, 1); 
+
+                    // --- THIS IS THE SIMPLIFIED LOGIC ---
+                    // Calculate the *absolute* rotation needed to map the
+                    // local face normal to the world target vector.
+                    targetRotation.setFromUnitVectors(faceNormal, targetVector);
+                    // ------------------------------------
+
+                    controls.autoRotate = false; // Stop auto-rotation
+                    isAnimating = true;          // Start the slerp animation
+                }
+            }
+        }
+        window.addEventListener('click', onClick);
+
+        // Start the animation
+        animate();
+    </script>
+</body>
+</html>
