@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Rounded Cube - Click to Face</title>
+    <title>3D Rounded Cube - Picture-in-Picture Camera</title>
     <style>
         body {
             margin: 0;
@@ -14,9 +14,21 @@
             display: block;
             cursor: pointer;
         }
+        /* NEW: Style for the map view container */
+        #map-view {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 200px;
+            height: 200px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border: 1px solid #ccc;
+            pointer-events: none; /* Allows clicking through it */
+        }
     </style>
 </head>
 <body>
+    <div id="map-view"></div>
     <canvas id="webgl-canvas"></canvas>
 
     <script type="importmap">
@@ -31,23 +43,32 @@
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        // NEW: Import the geometry for rounded edges
         import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
         // 1. Core Three.js Setup
         const scene = new THREE.Scene();
+
+        // --- NEW: Define map view size ---
+        const mapWidth = 200, mapHeight = 200;
+
+        // --- Main Camera (Your "eye") ---
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 4;
+
+        // --- NEW: Map Camera (Looks down at the scene) ---
+        const cameraMap = new THREE.PerspectiveCamera(60, mapWidth / mapHeight, 0.1, 1000);
+        cameraMap.position.set(0, 10, 0); // Positioned high up
+        cameraMap.lookAt(scene.position); // Looking at the center (0,0,0)
+
         const renderer = new THREE.WebGLRenderer({
             canvas: document.getElementById('webgl-canvas'),
             alpha: true,
-            // NEW: This enables anti-aliasing to smooth pixelated edges
             antialias: true 
         });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        // NEW: This renders at your device's native screen resolution (for HDPI/Retina)
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         
-        // 2. Add OrbitControls for interactivity
+        // 2. Add OrbitControls for the MAIN camera
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true; 
         controls.enableZoom = false; 
@@ -64,7 +85,6 @@
         for (let i = 0; i < 6; i++) {
             imageUrls.push(`https://picsum.photos/300/300?random=${i}`);
         }
-
         const textureLoader = new THREE.TextureLoader();
         const materials = imageUrls.map(url => {
             return new THREE.MeshBasicMaterial({
@@ -74,19 +94,25 @@
         });
 
         // 4. Geometry and Mesh
-        // NEW: Use RoundedBoxGeometry(width, height, depth, segments, radius)
         const geometry = new RoundedBoxGeometry(2, 2, 2, 6, 0.05); 
         const cube = new THREE.Mesh(geometry, materials);
         scene.add(cube);
 
-        // Position the camera
-        camera.position.z = 4;
+        // --- NEW: Create the camera helper sphere ---
+        const sphereGeometry = new THREE.SphereGeometry(0.2, 16, 16); 
+        const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 }); // Yellow
+        const cameraHelperSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        scene.add(cameraHelperSphere); // Add it to the scene
 
         // 5. Animation Loop
         function animate() {
             requestAnimationFrame(animate);
 
             controls.update();
+
+            // --- NEW: Update the helper sphere position ---
+            // This is now correct, because we'll see it from the *map* camera
+            cameraHelperSphere.position.copy(camera.position);
 
             if (isAnimating) {
                 cube.quaternion.slerp(targetRotation, 0.05);
@@ -95,20 +121,52 @@
                     isAnimating = false;
                 }
             }
+
+            // --- NEW: Enable Scissor Test ---
+            // This allows us to render to a specific "scissor" rectangle
+            renderer.setScissorTest(true);
+
+            // --- Render Main Scene (Full window) ---
+            renderer.setScissor(0, 0, window.innerWidth, window.innerHeight);
+            renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
             renderer.render(scene, camera);
+
+            // --- Render Map Scene (Bottom-left corner) ---
+            // The 20, 20 offsets match the CSS for the div
+            renderer.setScissor(20, 20, mapWidth, mapHeight);
+            renderer.setViewport(20, 20, mapWidth, mapHeight);
+            renderer.render(scene, cameraMap); // Render with the map camera
+
+            // --- NEW: Disable Scissor Test ---
+            renderer.setScissorTest(false);
         }
 
         // 6. Handle Window Resizing
         window.addEventListener('resize', () => {
+            // Update main camera
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
+
+            // --- NEW: Update map camera aspect ratio ---
+            // We keep its size fixed, so no change needed here unless
+            // you make the map view responsive.
+
             renderer.setSize(window.innerWidth, window.innerHeight);
-            // NEW: Also update the pixel ratio on resize
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         });
 
         // 7. Handle Click Event
         function onClick(event) {
+            // --- NEW: Check if click is inside map view ---
+            // If it is, ignore the click so we don't rotate the cube
+            const mapBox = document.getElementById('map-view').getBoundingClientRect();
+            if (
+                event.clientX >= mapBox.left && event.clientX <= mapBox.right &&
+                event.clientY >= mapBox.top && event.clientY <= mapBox.bottom
+            ) {
+                return; // Click was inside map, do nothing
+            }
+
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
@@ -121,18 +179,12 @@
                     const faceNormal = intersect.face.normal;
                     const targetVector = new THREE.Vector3(0, 0, 1); 
 
-                    // Clone the cube's current world quaternion to start from
                     const startQuaternion = cube.quaternion.clone();
-
-                    // Create a temporary matrix to get the face's world-space normal
                     const tempMatrix = new THREE.Matrix4();
                     tempMatrix.makeRotationFromQuaternion(startQuaternion);
                     const worldNormal = faceNormal.clone().applyMatrix4(tempMatrix).normalize();
 
-                    // Calculate the rotation needed to align the world normal with the target vector
                     targetRotation.setFromUnitVectors(worldNormal, targetVector);
-
-                    // Combine with the cube's current rotation
                     targetRotation.multiply(startQuaternion);
 
                     controls.autoRotate = false;
