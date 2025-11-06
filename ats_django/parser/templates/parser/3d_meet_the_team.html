@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Rounded Cube - Picture-in-Picture Camera</title>
+    <title>3D Rounded Cube - Rotational Inertia</title>
     <style>
         body {
             margin: 0;
@@ -14,7 +14,6 @@
             display: block;
             cursor: pointer;
         }
-        /* NEW: Style for the map view container */
         #map-view {
             position: absolute;
             bottom: 20px;
@@ -42,23 +41,18 @@
 
     <script type="module">
         import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
         // 1. Core Three.js Setup
         const scene = new THREE.Scene();
-
-        // --- NEW: Define map view size ---
         const mapWidth = 200, mapHeight = 200;
 
-        // --- Main Camera (Your "eye") ---
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 4;
+        camera.position.z = 4; 
 
-        // --- NEW: Map Camera (Looks down at the scene) ---
         const cameraMap = new THREE.PerspectiveCamera(60, mapWidth / mapHeight, 0.1, 1000);
-        cameraMap.position.set(0, 10, 0); // Positioned high up
-        cameraMap.lookAt(scene.position); // Looking at the center (0,0,0)
+        cameraMap.position.set(0, 10, 0); 
+        cameraMap.lookAt(scene.position); 
 
         const renderer = new THREE.WebGLRenderer({
             canvas: document.getElementById('webgl-canvas'),
@@ -68,17 +62,21 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         
-        // 2. Add OrbitControls for the MAIN camera
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true; 
-        controls.enableZoom = false; 
-        controls.autoRotate = true; 
-        controls.autoRotateSpeed = 2.0;
-
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
-        let isAnimating = false;
+        let isAnimating = false; // Is it "snapping-to-face"?
         const targetRotation = new THREE.Quaternion();
+
+        // --- State variables for manual drag-to-rotate ---
+        let isDragging = false;
+        const startMousePosition = new THREE.Vector2(); 
+        const previousMousePosition = new THREE.Vector2(); 
+        const deltaMousePosition = new THREE.Vector2();
+        const deltaRotation = new THREE.Quaternion(); // Re-usable quaternion
+
+        // --- NEW: State variables for inertia ---
+        const angularVelocity = new THREE.Vector2(0, 0); // Stores the X/Y spin speed
+        const dampingFactor = 0.95; // How quickly it slows down. (0.9 = fast, 0.99 = slow)
 
         // 3. Textures and Materials
         const imageUrls = [];
@@ -98,22 +96,49 @@
         const cube = new THREE.Mesh(geometry, materials);
         scene.add(cube);
 
-        // --- NEW: Create the camera helper sphere ---
+        // --- Camera helper sphere ---
         const sphereGeometry = new THREE.SphereGeometry(0.2, 16, 16); 
-        const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 }); // Yellow
+        const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 }); 
         const cameraHelperSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-        scene.add(cameraHelperSphere); // Add it to the scene
+        scene.add(cameraHelperSphere); 
 
         // 5. Animation Loop
         function animate() {
             requestAnimationFrame(animate);
-
-            controls.update();
-
-            // --- NEW: Update the helper sphere position ---
-            // This is now correct, because we'll see it from the *map* camera
+            
+            // Update the helper sphere position (it will be static)
             cameraHelperSphere.position.copy(camera.position);
 
+            // --- NEW: Apply rotational inertia (damping) ---
+            // This runs ONLY if the user is not dragging AND the cube is not snapping-to-face
+            if (!isDragging && !isAnimating && angularVelocity.lengthSq() > 0.0001) {
+                const rotationSpeed = 0.005; // Use the same speed as the drag
+
+                // Create rotations from the current velocity
+                const deltaRotationY = new THREE.Quaternion().setFromAxisAngle(
+                    new THREE.Vector3(0, 1, 0), // Y-axis
+                    angularVelocity.x * rotationSpeed
+                );
+                
+                const deltaRotationX = new THREE.Quaternion().setFromAxisAngle(
+                    new THREE.Vector3(1, 0, 0), // X-axis
+                    angularVelocity.y * rotationSpeed
+                );
+
+                // Combine and apply
+                deltaRotation.multiplyQuaternions(deltaRotationY, deltaRotationX);
+                cube.quaternion.multiplyQuaternions(deltaRotation, cube.quaternion);
+
+                // Apply damping (friction) to slow it down
+                angularVelocity.multiplyScalar(dampingFactor);
+
+                // Stop completely if velocity is negligible
+                if (angularVelocity.lengthSq() <= 0.0001) {
+                    angularVelocity.set(0, 0);
+                }
+            }
+
+            // This slerp animation runs when a face is clicked
             if (isAnimating) {
                 cube.quaternion.slerp(targetRotation, 0.05);
                 if (cube.quaternion.angleTo(targetRotation) < 0.01) {
@@ -122,43 +147,38 @@
                 }
             }
 
-            // --- NEW: Enable Scissor Test ---
-            // This allows us to render to a specific "scissor" rectangle
+            // --- Render logic (unchanged) ---
             renderer.setScissorTest(true);
 
-            // --- Render Main Scene (Full window) ---
+            // Render Main Scene
             renderer.setScissor(0, 0, window.innerWidth, window.innerHeight);
             renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
             renderer.render(scene, camera);
 
-            // --- Render Map Scene (Bottom-left corner) ---
-            // The 20, 20 offsets match the CSS for the div
+            // Render Map Scene
             renderer.setScissor(20, 20, mapWidth, mapHeight);
             renderer.setViewport(20, 20, mapWidth, mapHeight);
-            renderer.render(scene, cameraMap); // Render with the map camera
+            renderer.render(scene, cameraMap); 
 
-            // --- NEW: Disable Scissor Test ---
             renderer.setScissorTest(false);
         }
 
-        // 6. Handle Window Resizing
+        // 6. Handle Window Resizing (unchanged)
         window.addEventListener('resize', () => {
-            // Update main camera
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
-
-            // --- NEW: Update map camera aspect ratio ---
-            // We keep its size fixed, so no change needed here unless
-            // you make the map view responsive.
-
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         });
 
-        // 7. Handle Click Event
-        function onClick(event) {
-            // --- NEW: Check if click is inside map view ---
-            // If it is, ignore the click so we don't rotate the cube
+        // 7. --- MODIFIED: Mouse Controls ---
+
+        window.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+
+        function onMouseDown(event) {
+            // Check if click is inside map view
             const mapBox = document.getElementById('map-view').getBoundingClientRect();
             if (
                 event.clientX >= mapBox.left && event.clientX <= mapBox.right &&
@@ -167,32 +187,95 @@
                 return; // Click was inside map, do nothing
             }
 
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            isDragging = true;
+            isAnimating = false; // Stop any click-to-face animation
+            
+            // --- NEW: "Catch" the cube by stopping all inertia ---
+            angularVelocity.set(0, 0); 
+            
+            // Store positions
+            startMousePosition.set(event.clientX, event.clientY);
+            previousMousePosition.set(event.clientX, event.clientY);
+        }
 
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects([cube]);
+        function onMouseMove(event) {
+            if (!isDragging) return;
 
-            if (intersects.length > 0) {
-                const intersect = intersects[0];
-                if (intersect.face) {
-                    const faceNormal = intersect.face.normal;
-                    const targetVector = new THREE.Vector3(0, 0, 1); 
+            // Calculate mouse movement delta
+            deltaMousePosition.set(
+                event.clientX - previousMousePosition.x,
+                event.clientY - previousMousePosition.y
+            );
+            
+            const rotationSpeed = 0.005;
+            
+            // Y-axis rotation (left/right drag)
+            const deltaRotationY = new THREE.Quaternion().setFromAxisAngle(
+                new THREE.Vector3(0, 1, 0), // Y-axis
+                deltaMousePosition.x * rotationSpeed
+            );
+            
+            // X-axis rotation (up/down drag)
+            const deltaRotationX = new THREE.Quaternion().setFromAxisAngle(
+                new THREE.Vector3(1, 0, 0), // X-axis
+                deltaMousePosition.y * rotationSpeed
+            );
+            
+            // Combine and apply
+            deltaRotation.multiplyQuaternions(deltaRotationY, deltaRotationX);
+            cube.quaternion.multiplyQuaternions(deltaRotation, cube.quaternion);
+            
+            // Store current position for next frame
+            previousMousePosition.set(event.clientX, event.clientY);
+            
+            // --- NEW: Update the velocity for the "throw" ---
+            angularVelocity.copy(deltaMousePosition);
+        }
 
-                    const startQuaternion = cube.quaternion.clone();
-                    const tempMatrix = new THREE.Matrix4();
-                    tempMatrix.makeRotationFromQuaternion(startQuaternion);
-                    const worldNormal = faceNormal.clone().applyMatrix4(tempMatrix).normalize();
+        function onMouseUp(event) {
+            if (!isDragging) return; 
+            
+            isDragging = false;
+            
+            // --- Click vs. Drag check ---
+            const dragDistance = startMousePosition.distanceTo(
+                new THREE.Vector2(event.clientX, event.clientY)
+            );
+            
+            // If it was a CLICK:
+            if (dragDistance < 5) {
+                // --- NEW: Stop any potential inertia from the tiny drag ---
+                angularVelocity.set(0, 0);
+            
+                // This is the "click-to-face" logic
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-                    targetRotation.setFromUnitVectors(worldNormal, targetVector);
-                    targetRotation.multiply(startQuaternion);
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects([cube]);
 
-                    controls.autoRotate = false;
-                    isAnimating = true;
+                if (intersects.length > 0) {
+                    const intersect = intersects[0];
+                    if (intersect.face) {
+                        const faceNormal = intersect.face.normal;
+                        const targetVector = new THREE.Vector3(0, 0, 1); 
+
+                        const startQuaternion = cube.quaternion.clone();
+                        const tempMatrix = new THREE.Matrix4();
+                        tempMatrix.makeRotationFromQuaternion(startQuaternion);
+                        const worldNormal = faceNormal.clone().applyMatrix4(tempMatrix).normalize();
+
+                        targetRotation.setFromUnitVectors(worldNormal, targetVector);
+                        targetRotation.multiply(startQuaternion);
+                        
+                        isAnimating = true; // Start the slerp animation
+                    }
                 }
             }
+            // If it was a DRAG (dragDistance >= 5):
+            // We do nothing. The `angularVelocity` is already set from
+            // onMouseMove, and the `animate` loop will take over.
         }
-        window.addEventListener('click', onClick);
 
         // Start the animation
         animate();
