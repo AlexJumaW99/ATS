@@ -1,8 +1,9 @@
 import google.generativeai as genai
 import json
 import re
-import docx
-from io import BytesIO
+import os
+import tempfile
+from docling.document_converter import DocumentConverter
 
 def get_gemini_response(resume_content):
     """
@@ -49,22 +50,49 @@ def get_gemini_response(resume_content):
 
 def process_resume(resume_file):
     """
-    Processes an uploaded resume file, extracts information using Gemini,
-    and returns it as a dictionary and the raw text.
+    Processes an uploaded resume file using Docling to support PDF, DOCX, Images, etc.,
+    extracts information using Gemini, and returns it as a dictionary and the raw text.
     """
+    temp_file_path = None
+    resume_content = ""
+
     try:
-        if resume_file.name.endswith('.docx'):
-            # For .docx files, read the content into a BytesIO object
-            # and then process with the docx library.
-            doc = docx.Document(BytesIO(resume_file.read()))
-            resume_content = "\n".join([paragraph.text for paragraph in doc.paragraphs])
-        else:
-            # For other file types, assume they can be decoded as text.
-            resume_content = resume_file.read().decode('utf-8', errors='ignore')
+        # 1. Create a temporary file to store the uploaded content.
+        # Docling requires a file path to detect the format and process correctly.
+        # We preserve the original extension (e.g., .pdf, .docx, .png).
+        file_ext = os.path.splitext(resume_file.name)[1]
+        
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as temp_file:
+            for chunk in resume_file.chunks():
+                temp_file.write(chunk)
+            temp_file_path = temp_file.name
+
+        # 2. Convert the document using Docling
+        converter = DocumentConverter()
+        result = converter.convert(temp_file_path)
+        
+        # 3. Export to Markdown.
+        # Markdown is ideal for LLMs as it preserves document structure (headers, lists)
+        # which helps the LLM locate fields like "Education" or "Contact Info".
+        resume_content = result.document.export_to_markdown()
+
     except Exception as e:
-        print(f"Error reading file: {e}")
+        print(f"Error processing file with Docling: {e}")
+        return None, None
+    finally:
+        # 4. Cleanup: Ensure the temporary file is removed even if errors occur
+        if temp_file_path and os.path.exists(temp_file_path):
+            try:
+                os.remove(temp_file_path)
+            except OSError as e:
+                print(f"Error deleting temp file: {e}")
+
+    # If conversion returned empty content, abort
+    if not resume_content or not resume_content.strip():
+        print("Docling extracted no text from the file.")
         return None, None
 
+    # 5. Send extracted text to Gemini
     gemini_output = get_gemini_response(resume_content)
 
     if gemini_output:

@@ -1,0 +1,7 @@
+- var x_max = 11;
+- var y_max = 11;
+.grid
+  - for (var x = 0; x < x_max; x++)
+    .row
+      - for (var y = 0; y < y_max; y++)
+        .cell(data-x=x, data-y=y)

@@ -1,0 +1,32 @@
+body {
+  display: grid;
+  justify-content: center;
+  align-content: center;
+  background-color: #0e100f;
+  height: 100svh;
+  margin: 0;
+  overflow: hidden;
+  user-select: none;
+}
+
+.grid {
+  --gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.row {
+  display: flex;
+  gap: var(--gap);
+}
+
+.cell {
+  --size: 24px;
+  width: var(--size);
+  height: var(--size);
+  background-color: #fffce1;
+  border-radius: 50%;
+  will-change: transform;
+  cursor: pointer;
+}
