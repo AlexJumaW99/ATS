@@ -3,31 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Dice Roll - Realistic Choreography</title>
+    <title>3D Meet the Team Selector</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
             background-color: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-        canvas {
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Split screen 50/50 */
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #webgl-canvas {
             display: block;
+            width: 100%;
+            height: 100%;
             cursor: pointer;
         }
-        #map-view {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 200px;
-            height: 200px;
-            background-color: rgba(255, 255, 255, 0.3);
-            border: 1px solid #ccc;
-            pointer-events: none; 
+
+        #team-info {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start; /* Align text left */
+            padding: 5vw;
+            box-sizing: border-box;
         }
+
         #roll-button {
             position: absolute;
             top: 20px;
-            right: 20px;
+            left: 20px; /* Moved to left */
             padding: 10px 20px;
             font-size: 16px;
             font-weight: bold;
@@ -37,13 +57,48 @@
             border-radius: 5px;
             z-index: 10;
         }
+
+        /* Styles for the team info panel */
+        #team-info h2 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: #111;
+            font-weight: 700;
+        }
+        #team-info h3 { /* Default text */
+            font-size: 1.5rem; 
+            font-weight: 600; 
+            color: #555; 
+            text-align: left;
+        }
+        #team-info p.title {
+            font-size: 1.25rem;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            color: #6366f1; /* Indigo color to match theme */
+            font-weight: 500;
+        }
+        #team-info p.bio {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #333;
+            text-align: left;
+        }
+
     </style>
 </head>
 <body>
-    <button id="roll-button">Roll the Dice</button>
-
-    <div id="map-view"></div>
-    <canvas id="webgl-canvas"></canvas>
+    
+    <div class="main-container">
+        <div id="canvas-container">
+            <button id="roll-button">Roll the Dice</button>
+            <canvas id="webgl-canvas"></canvas>
+        </div>
+        
+        <div id="team-info">
+            <h3>Click on a team member to find out more about them!</h3>
+        </div>
+    </div>
 
     <script type="importmap">
         {
@@ -62,34 +117,79 @@
         import * as CANNON from 'cannon-es';
         import { gsap } from 'gsap';
 
-        // 1. Core Three.js Setup (Unchanged)
+        // =================================================================
+        // == 1. TEAM DATA - REPLACE WITH YOUR TEAM'S INFO ==
+        // =================================================================
+        const teamData = [
+            { // Face 1 (Index 0)
+                name: "Dr. Evelyn Reed",
+                title: "CEO & Founder",
+                bio: "Evelyn is the visionary behind our AI-driven platform, with a Ph.D. in Machine Learning and over 15 years of industry experience in scaling tech startups.",
+                // IMPORTANT: Update this path.
+                // It should be relative to your 'static' or 'media' folder.
+                // For example: '/media/team_pics/member1.jpg'
+                image: "/team_pics/member1.jpg" // Placeholder path
+            },
+            { // Face 2 (Index 1)
+                name: "Marcus Cole",
+                title: "Chief Technology Officer",
+                bio: "Marcus leads our engineering team, architecting and scaling our infrastructure to handle millions of requests with unparalleled efficiency and reliability.",
+                image: "/team_pics/member2.jpg" // Placeholder path
+            },
+            { // Face 3 (Index 2)
+                name: "Aisha Khan",
+                title: "Head of Product",
+                bio: "Aisha bridges the gap between complex user needs and technical feasibility, ensuring we build features that truly matter and are delightful to use.",
+                image: "/team_pics/member3.jpg" // Placeholder path
+            },
+            { // Face 4 (Index 3)
+                name: "Tom Chen",
+                title: "Lead Data Scientist",
+                bio: "Tom and his team are the brains behind our resume parsing algorithms. They are constantly pushing the boundaries of accuracy and fairness in AI.",
+                image: "/team_pics/member4.jpg" // Placeholder path
+            },
+            { // Face 5 (Index 4)
+                name: "Sarah Jenkins",
+                title: "UX/UI Design Lead",
+                bio: "Sarah is obsessed with creating a seamless and intuitive user experience, transforming complex data into beautiful and easy-to-understand interfaces.",
+                image: "/team_pics/member5.jpg" // Placeholder path
+            },
+            { // Face 6 (Index 5)
+                name: "David Kim",
+                title: "Head of Customer Success",
+                bio: "David ensures every client maximizes their potential with our platform. He provides world-class support, training, and strategic guidance.",
+                image: "/team_pics/member6.jpg" // Placeholder path
+            }
+        ];
+        // =================================================================
+        
+        // 2. Core Three.js Setup
         const scene = new THREE.Scene();
-        const mapWidth = 200, mapHeight = 200;
         const clock = new THREE.Clock(); 
+        const canvasContainer = document.getElementById('canvas-container');
+        const teamInfoPanel = document.getElementById('team-info');
+        const defaultInfoHTML = `<h3>Click on a team member to find out more about them!</h3>`;
 
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 4; 
-
-        const cameraMap = new THREE.PerspectiveCamera(60, mapWidth / mapHeight, 0.1, 1000);
-        cameraMap.position.set(0, 10, 0); 
-        cameraMap.lookAt(scene.position); 
+        const camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
+        camera.position.z = 3; 
 
         const renderer = new THREE.WebGLRenderer({
             canvas: document.getElementById('webgl-canvas'),
             alpha: true,
             antialias: true 
         });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
-        // --- All State Variables (Unchanged) ---
+        // 3. State Variables
         let isAnimating = false;    
         let isDragging = false;     
         let isRolling = false;      
         let isChoreographedRolling = false; 
+        let pendingInfoUpdate = -1; // -1 = no update, 0-5 = index to update
         
         const targetRotation = new THREE.Quaternion();
         const startMousePosition = new THREE.Vector2(); 
@@ -99,11 +199,8 @@
         const angularVelocity = new THREE.Vector2(0, 0);
         const dampingFactor = 0.95; 
 
-        // 3. Textures and Materials (Unchanged)
-        const imageUrls = [];
-        for (let i = 0; i < 6; i++) {
-            imageUrls.push(`https://picsum.photos/300/300?random=${i}`);
-        }
+        // 4. Textures and Materials
+        const imageUrls = teamData.map(member => member.image);
         const textureLoader = new THREE.TextureLoader();
         const materials = imageUrls.map(url => {
             return new THREE.MeshBasicMaterial({
@@ -112,18 +209,12 @@
             });
         });
 
-        // 4. Geometry and Mesh (Unchanged)
+        // 5. Geometry and Mesh
         const geometry = new RoundedBoxGeometry(2, 2, 2, 6, 0.05); 
         const cube = new THREE.Mesh(geometry, materials);
         scene.add(cube);
 
-        // --- Camera helper sphere (Unchanged) ---
-        const sphereGeometry = new THREE.SphereGeometry(0.2, 16, 16); 
-        const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 }); 
-        const cameraHelperSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-        scene.add(cameraHelperSphere); 
-
-        // --- 5. Physics Setup (Unchanged) ---
+        // 6. Physics Setup
         const world = new CANNON.World({
             gravity: new CANNON.Vec3(0, -9.82, 0) 
         });
@@ -155,23 +246,43 @@
         floorBody.position.set(0, -2, 0);
         world.addBody(floorBody);
 
-        // --- Helper array of face normals (Unchanged) ---
+        // Helper array of face normals (indices 0-5 match material indices)
         const faceNormals = [
-            new THREE.Vector3(1, 0, 0), 
-            new THREE.Vector3(-1, 0, 0),
-            new THREE.Vector3(0, 1, 0), 
-            new THREE.Vector3(0, -1, 0),
-            new THREE.Vector3(0, 0, 1), 
-            new THREE.Vector3(0, 0, -1)
+            new THREE.Vector3(1, 0, 0),  // Right face (index 0)
+            new THREE.Vector3(-1, 0, 0), // Left face (index 1)
+            new THREE.Vector3(0, 1, 0),  // Top face (index 2)
+            new THREE.Vector3(0, -1, 0), // Bottom face (index 3)
+            new THREE.Vector3(0, 0, 1),  // Front face (index 4)
+            new THREE.Vector3(0, 0, -1)  // Back face (index 5)
         ];
 
-        // 6. Animation Loop (Unchanged)
+        // 7. NEW: Function to update the text panel
+        function updateTeamInfo(memberIndex) {
+            if (memberIndex === null) {
+                // Hide text (e.g., during roll)
+                gsap.to(teamInfoPanel, { opacity: 0, duration: 0.3 });
+            } else if (memberIndex === 'default') {
+                // Show default text
+                teamInfoPanel.innerHTML = defaultInfoHTML;
+                gsap.to(teamInfoPanel, { opacity: 1, duration: 0.3 });
+            } else {
+                // Show specific member info
+                const member = teamData[memberIndex];
+                teamInfoPanel.innerHTML = `
+                    <h2>${member.name}</h2>
+                    <p class="title">${member.title}</p>
+                    <p class="bio">${member.bio}</p>
+                `;
+                // Fade in
+                gsap.fromTo(teamInfoPanel, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, delay: 0.3 });
+            }
+        }
+
+        // 8. Animation Loop
         function animate() {
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
             
-            cameraHelperSphere.position.copy(camera.position);
-
             world.step(1 / 60, delta); 
 
             if (isChoreographedRolling) {
@@ -189,25 +300,38 @@
                     cubeBody.angularVelocity.set(0,0,0); 
                     cubeBody.velocity.set(0,0,0);
 
-                    const randomNormal = faceNormals[Math.floor(Math.random() * faceNormals.length)];
+                    // Pick a random face to snap to
+                    const randomMemberIndex = Math.floor(Math.random() * 6);
+                    const randomNormal = faceNormals[randomMemberIndex];
+                    
                     calculateSnapRotation(randomNormal); 
-                    isAnimating = true; 
+                    isAnimating = true;
+                    pendingInfoUpdate = randomMemberIndex; 
                 }
 
             } else if (isAnimating) {
                 cube.quaternion.slerp(targetRotation, 0.05);
-                cube.position.lerp(new THREE.Vector3(0, 0, 0), 0.05);
+                // MODIFIED: This lerp brings the cube back to center after the roll
+                cube.position.lerp(new THREE.Vector3(0, 0, 0), 0.05); 
 
+                // Check if animation is finished
                 if (cube.quaternion.angleTo(targetRotation) < 0.01 && cube.position.length() < 0.01) {
                     cube.quaternion.copy(targetRotation);
-                    cube.position.set(0, 0, 0);
+                    cube.position.set(0, 0, 0); // Snap to center
                     isAnimating = false;
+                    
+                    // NEW: Check if an info update is pending (from a dice roll)
+                    if (pendingInfoUpdate !== -1) {
+                        updateTeamInfo(pendingInfoUpdate);
+                        pendingInfoUpdate = -1; // Clear the flag
+                    }
                 }
                 
                 cubeBody.position.copy(cube.position);
                 cubeBody.quaternion.copy(cube.quaternion);
 
             } else if (!isDragging) {
+                // Apply damping to spin
                 if (angularVelocity.lengthSq() > 0.0001) {
                     const rotationSpeed = 0.005;
                     const deltaRotationY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), angularVelocity.x * rotationSpeed);
@@ -221,41 +345,30 @@
                 cubeBody.quaternion.copy(cube.quaternion);
 
             } else {
+                // While dragging
                 cubeBody.quaternion.copy(cube.quaternion);
             }
 
-            // --- Render logic (unchanged) ---
-            renderer.setScissorTest(true);
-            renderer.setScissor(0, 0, window.innerWidth, window.innerHeight);
-            renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+            // Single render call
             renderer.render(scene, camera);
-            renderer.setScissor(20, 20, mapWidth, mapHeight);
-            renderer.setViewport(20, 20, mapWidth, mapHeight);
-            renderer.render(scene, cameraMap); 
-            renderer.setScissorTest(false);
         }
 
-        // 7. Handle Window Resizing (Unchanged)
+        // 9. Handle Window Resizing
         window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         });
 
-        // 8. --- Mouse Controls (Unchanged) ---
+        // 10. Mouse Controls
         window.addEventListener('mousedown', onMouseDown);
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('mouseup', onMouseUp);
 
         function onMouseDown(event) {
-            const mapBox = document.getElementById('map-view').getBoundingClientRect();
-            if (event.target.id === 'roll-button' || (
-                event.clientX >= mapBox.left && event.clientX <= mapBox.right &&
-                event.clientY >= mapBox.top && event.clientY <= mapBox.bottom
-            )) {
-                return;
-            }
+            if (event.target.id === 'roll-button') return;
+            if (event.target.id !== 'webgl-canvas') return;
             
             if (gsap.isTweening(cube.position) || gsap.isTweening(cube.rotation)) {
                  gsap.killTweensOf(cube.position);
@@ -266,6 +379,9 @@
             isAnimating = false;
             isDragging = true;
             angularVelocity.set(0, 0); 
+            pendingInfoUpdate = -1; 
+
+            updateTeamInfo(null);
 
             cubeBody.position.copy(cube.position);
             cubeBody.quaternion.copy(cube.quaternion);
@@ -302,22 +418,33 @@
             
             if (dragDistance < 5) { // CLICK
                 angularVelocity.set(0, 0); 
-                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                
+                const canvasBounds = renderer.domElement.getBoundingClientRect();
+                mouse.x = ((event.clientX - canvasBounds.left) / canvasBounds.width) * 2 - 1;
+                mouse.y = -((event.clientY - canvasBounds.top) / canvasBounds.height) * 2 + 1;
+
                 raycaster.setFromCamera(mouse, camera);
                 const intersects = raycaster.intersectObjects([cube]);
 
                 if (intersects.length > 0) {
                     const intersect = intersects[0];
                     if (intersect.face) {
+                        const materialIndex = intersect.face.materialIndex;
+                        updateTeamInfo(materialIndex); 
                         calculateSnapRotation(intersect.face.normal);
                         isAnimating = true; 
                     }
+                } else {
+                    updateTeamInfo('default');
                 }
+            } else {
+                updateTeamInfo('default');
             }
         }
 
-        // --- NEW: 9. Button "Roll" Logic (Modified for Realism) ---
+        // =================================================================
+        // == 11. "Roll the Dice" Logic - MODIFIED ==
+        // =================================================================
         document.getElementById('roll-button').addEventListener('click', () => {
             // Stop other animations
             isAnimating = false;
@@ -325,11 +452,13 @@
             isRolling = false;
             angularVelocity.set(0, 0);
             
-            // Kill any pre-existing GSAP animations
             gsap.killTweensOf(cube.position);
             gsap.killTweensOf(cube.rotation);
 
             isChoreographedRolling = true;
+            
+            // Hide text panel
+            updateTeamInfo(null); 
 
             cube.position.set(0, 0, 0);
             cube.rotation.set(0, 0, 0); 
@@ -337,13 +466,11 @@
             cubeBody.quaternion.copy(cube.quaternion);
 
             // --- Define Animation Parameters ---
-            // NEW: Shorter duration for a faster, snappier roll
             const totalDuration = 2.0; 
-            const finalX = 5;          
-            const finalZ = -5;         
+            const finalX = 4;          // MODIFIED: Move to the right
+            const finalZ = -5;         // MODIFIED: Move away from camera
             const floorY = -1;
             
-            // NEW: Lower bounce heights for "less air time"
             const bounce1_Y = 1.0; 
             const bounce2_Y = 0.4;
             const bounce3_Y = 0.1; 
@@ -351,28 +478,33 @@
             const tl = gsap.timeline({
                 onComplete: () => {
                     isChoreographedRolling = false;
-                    const randomNormal = faceNormals[Math.floor(Math.random() * faceNormals.length)];
+                    
+                    const randomMemberIndex = Math.floor(Math.random() * 6);
+                    const randomNormal = faceNormals[randomMemberIndex];
+                    
                     calculateSnapRotation(randomNormal); 
-                    isAnimating = true; 
+                    isAnimating = true; // This will trigger the glide-back-to-center
+                    
+                    // Set the info to update *after* the animation
+                    pendingInfoUpdate = randomMemberIndex;
                 }
             });
 
             // --- Animate Position (X, Y, Z) using keyframes ---
-            // NEW: Keyframe durations are adjusted.
-            // Notice the bounces get progressively *faster* (shorter duration)
+            // MODIFIED: Keyframes now move towards finalX and finalZ
             tl.to(cube.position, {
                 duration: totalDuration,
                 ease: "none",
                 keyframes: [
-                    // Bounce 1 Peak (Longest arc)
+                    // Bounce 1 Peak
                     { x: finalX * 0.2, y: bounce1_Y, z: finalZ * 0.2, duration: totalDuration * 0.2, ease: "power1.out" },
                     // Bounce 1 Hit
                     { x: finalX * 0.4, y: floorY, z: finalZ * 0.4, duration: totalDuration * 0.2, ease: "power1.in" },
-                    // Bounce 2 Peak (Shorter arc)
+                    // Bounce 2 Peak
                     { x: finalX * 0.55, y: bounce2_Y, z: finalZ * 0.55, duration: totalDuration * 0.15, ease: "power1.out" },
                     // Bounce 2 Hit
                     { x: finalX * 0.7, y: floorY, z: finalZ * 0.7, duration: totalDuration * 0.15, ease: "power1.in" },
-                    // Bounce 3 Peak (Quick hop)
+                    // Bounce 3 Peak
                     { x: finalX * 0.8, y: bounce3_Y, z: finalZ * 0.8, duration: totalDuration * 0.1, ease: "power1.out" },
                     // Bounce 3 Hit
                     { x: finalX * 0.9, y: floorY, z: finalZ * 0.9, duration: totalDuration * 0.1, ease: "power1.in" },
@@ -382,18 +514,19 @@
             }, 0);
 
             // --- SIMULTANEOUSLY: Animate Rotation ---
-            // NEW: Greatly increased rotation values for "more tumble"
-            // NEW: Changed ease to "power2.inOut" for a more realistic slowdown
             tl.to(cube.rotation, {
                 x: `+=${Math.PI * 8 + Math.random() * 4}`, // Tumble "forward"
                 z: `+=${Math.PI * 7 + Math.random() * 4}`, // Tumble "sideways"
                 y: `+=${Math.PI * 5 + Math.random() * 2}`, // "Spin"
                 duration: totalDuration,
-                ease: "power2.inOut" // Starts fast, slows down more noticeably
+                ease: "power2.inOut"
             }, 0); 
         });
+        // =================================================================
+        // == END OF MODIFICATIONS ==
+        // =================================================================
 
-        // --- 10. Refactored Snap Logic (Unchanged) ---
+        // 12. Snap Logic (Unchanged)
         function calculateSnapRotation(sourceNormal) {
             const targetNormal = new THREE.Vector3(0, 0, 1);
             const targetUp = new THREE.Vector3(0, 1, 0);
