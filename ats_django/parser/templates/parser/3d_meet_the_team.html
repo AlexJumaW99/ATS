@@ -14,7 +14,7 @@
 
         .main-container {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* Split screen 50/50 */
+            grid-template-columns: 1fr 1fr;
             width: 100vw;
             height: 100vh;
             overflow: hidden;
@@ -39,7 +39,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            align-items: flex-start; /* Align text left */
+            align-items: flex-start;
             padding: 5vw;
             box-sizing: border-box;
         }
@@ -47,7 +47,7 @@
         #roll-button {
             position: absolute;
             top: 20px;
-            left: 20px; /* Moved to left */
+            left: 20px;
             padding: 10px 20px;
             font-size: 16px;
             font-weight: bold;
@@ -58,14 +58,13 @@
             z-index: 10;
         }
 
-        /* Styles for the team info panel */
         #team-info h2 {
             font-size: 2.5rem;
             margin-bottom: 0.5rem;
             color: #111;
             font-weight: 700;
         }
-        #team-info h3 { /* Default text */
+        #team-info h3 {
             font-size: 1.5rem; 
             font-weight: 600; 
             color: #555; 
@@ -75,7 +74,7 @@
             font-size: 1.25rem;
             margin-top: 0;
             margin-bottom: 1.5rem;
-            color: #6366f1; /* Indigo color to match theme */
+            color: #6366f1;
             font-weight: 500;
         }
         #team-info p.bio {
@@ -121,44 +120,49 @@
         // == 1. TEAM DATA - REPLACE WITH YOUR TEAM'S INFO ==
         // =================================================================
         const teamData = [
-            { // Face 1 (Index 0)
+            {
                 name: "Dr. Evelyn Reed",
                 title: "CEO & Founder",
                 bio: "Evelyn is the visionary behind our AI-driven platform, with a Ph.D. in Machine Learning and over 15 years of industry experience in scaling tech startups.",
-                // IMPORTANT: Update this path.
-                // It should be relative to your 'static' or 'media' folder.
-                // For example: '/media/team_pics/member1.jpg'
-                image: "/team_pics/member1.jpg" // Placeholder path
+                // OPTION 1: Relative path (create a 'team_pics' folder next to this HTML file)
+                image: "./team_pics/member1.jpg"
+                // OPTION 2: Use placeholder service for testing
+                // image: "https://i.pravatar.cc/400?img=1"
             },
-            { // Face 2 (Index 1)
+            {
                 name: "Marcus Cole",
                 title: "Chief Technology Officer",
                 bio: "Marcus leads our engineering team, architecting and scaling our infrastructure to handle millions of requests with unparalleled efficiency and reliability.",
-                image: "/team_pics/member2.jpg" // Placeholder path
+                image: "./team_pics/member2.jpg"
+                // image: "https://i.pravatar.cc/400?img=12"
             },
-            { // Face 3 (Index 2)
+            {
                 name: "Aisha Khan",
                 title: "Head of Product",
                 bio: "Aisha bridges the gap between complex user needs and technical feasibility, ensuring we build features that truly matter and are delightful to use.",
-                image: "/team_pics/member3.jpg" // Placeholder path
+                image: "./team_pics/member3.jpg"
+                // image: "https://i.pravatar.cc/400?img=5"
             },
-            { // Face 4 (Index 3)
+            {
                 name: "Tom Chen",
                 title: "Lead Data Scientist",
                 bio: "Tom and his team are the brains behind our resume parsing algorithms. They are constantly pushing the boundaries of accuracy and fairness in AI.",
-                image: "/team_pics/member4.jpg" // Placeholder path
+                image: "./team_pics/member4.jpg"
+                // image: "https://i.pravatar.cc/400?img=33"
             },
-            { // Face 5 (Index 4)
+            {
                 name: "Sarah Jenkins",
                 title: "UX/UI Design Lead",
                 bio: "Sarah is obsessed with creating a seamless and intuitive user experience, transforming complex data into beautiful and easy-to-understand interfaces.",
-                image: "/team_pics/member5.jpg" // Placeholder path
+                image: "./team_pics/member5.jpg"
+                // image: "https://i.pravatar.cc/400?img=9"
             },
-            { // Face 6 (Index 5)
+            {
                 name: "David Kim",
                 title: "Head of Customer Success",
                 bio: "David ensures every client maximizes their potential with our platform. He provides world-class support, training, and strategic guidance.",
-                image: "/team_pics/member6.jpg" // Placeholder path
+                image: "./team_pics/member6.jpg"
+                // image: "https://i.pravatar.cc/400?img=15"
             }
         ];
         // =================================================================
@@ -189,7 +193,7 @@
         let isDragging = false;     
         let isRolling = false;      
         let isChoreographedRolling = false; 
-        let pendingInfoUpdate = -1; // -1 = no update, 0-5 = index to update
+        let pendingInfoUpdate = -1;
         
         const targetRotation = new THREE.Quaternion();
         const startMousePosition = new THREE.Vector2(); 
@@ -199,13 +203,36 @@
         const angularVelocity = new THREE.Vector2(0, 0);
         const dampingFactor = 0.95; 
 
-        // 4. Textures and Materials
+        // 4. Textures and Materials with error handling
         const imageUrls = teamData.map(member => member.image);
         const textureLoader = new THREE.TextureLoader();
-        const materials = imageUrls.map(url => {
+        
+        // Create a fallback colored material in case images don't load
+        const colors = [0xff6b6b, 0x4ecdc4, 0x45b7d1, 0xffa07a, 0x98d8c8, 0xf7dc6f];
+        
+        const materials = imageUrls.map((url, index) => {
+            const texture = textureLoader.load(
+                url,
+                // onLoad
+                (loadedTexture) => {
+                    console.log(`✓ Successfully loaded: ${url}`);
+                },
+                // onProgress
+                undefined,
+                // onError
+                (error) => {
+                    console.error(`✗ Failed to load: ${url}`);
+                    console.error('Error details:', error);
+                    // Apply fallback color
+                    materials[index].color.setHex(colors[index]);
+                    materials[index].map = null;
+                }
+            );
+            
             return new THREE.MeshBasicMaterial({
-                map: textureLoader.load(url),
-                side: THREE.DoubleSide 
+                map: texture,
+                color: 0xffffff,
+                side: THREE.DoubleSide
             });
         });
 
@@ -246,34 +273,29 @@
         floorBody.position.set(0, -2, 0);
         world.addBody(floorBody);
 
-        // Helper array of face normals (indices 0-5 match material indices)
         const faceNormals = [
-            new THREE.Vector3(1, 0, 0),  // Right face (index 0)
-            new THREE.Vector3(-1, 0, 0), // Left face (index 1)
-            new THREE.Vector3(0, 1, 0),  // Top face (index 2)
-            new THREE.Vector3(0, -1, 0), // Bottom face (index 3)
-            new THREE.Vector3(0, 0, 1),  // Front face (index 4)
-            new THREE.Vector3(0, 0, -1)  // Back face (index 5)
+            new THREE.Vector3(1, 0, 0),
+            new THREE.Vector3(-1, 0, 0),
+            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(0, -1, 0),
+            new THREE.Vector3(0, 0, 1),
+            new THREE.Vector3(0, 0, -1)
         ];
 
-        // 7. NEW: Function to update the text panel
+        // 7. Function to update the text panel
         function updateTeamInfo(memberIndex) {
             if (memberIndex === null) {
-                // Hide text (e.g., during roll)
                 gsap.to(teamInfoPanel, { opacity: 0, duration: 0.3 });
             } else if (memberIndex === 'default') {
-                // Show default text
                 teamInfoPanel.innerHTML = defaultInfoHTML;
                 gsap.to(teamInfoPanel, { opacity: 1, duration: 0.3 });
             } else {
-                // Show specific member info
                 const member = teamData[memberIndex];
                 teamInfoPanel.innerHTML = `
                     <h2>${member.name}</h2>
                     <p class="title">${member.title}</p>
                     <p class="bio">${member.bio}</p>
                 `;
-                // Fade in
                 gsap.fromTo(teamInfoPanel, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, delay: 0.3 });
             }
         }
@@ -300,7 +322,6 @@
                     cubeBody.angularVelocity.set(0,0,0); 
                     cubeBody.velocity.set(0,0,0);
 
-                    // Pick a random face to snap to
                     const randomMemberIndex = Math.floor(Math.random() * 6);
                     const randomNormal = faceNormals[randomMemberIndex];
                     
@@ -311,19 +332,16 @@
 
             } else if (isAnimating) {
                 cube.quaternion.slerp(targetRotation, 0.05);
-                // MODIFIED: This lerp brings the cube back to center after the roll
                 cube.position.lerp(new THREE.Vector3(0, 0, 0), 0.05); 
 
-                // Check if animation is finished
                 if (cube.quaternion.angleTo(targetRotation) < 0.01 && cube.position.length() < 0.01) {
                     cube.quaternion.copy(targetRotation);
-                    cube.position.set(0, 0, 0); // Snap to center
+                    cube.position.set(0, 0, 0);
                     isAnimating = false;
                     
-                    // NEW: Check if an info update is pending (from a dice roll)
                     if (pendingInfoUpdate !== -1) {
                         updateTeamInfo(pendingInfoUpdate);
-                        pendingInfoUpdate = -1; // Clear the flag
+                        pendingInfoUpdate = -1;
                     }
                 }
                 
@@ -331,7 +349,6 @@
                 cubeBody.quaternion.copy(cube.quaternion);
 
             } else if (!isDragging) {
-                // Apply damping to spin
                 if (angularVelocity.lengthSq() > 0.0001) {
                     const rotationSpeed = 0.005;
                     const deltaRotationY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), angularVelocity.x * rotationSpeed);
@@ -345,11 +362,9 @@
                 cubeBody.quaternion.copy(cube.quaternion);
 
             } else {
-                // While dragging
                 cubeBody.quaternion.copy(cube.quaternion);
             }
 
-            // Single render call
             renderer.render(scene, camera);
         }
 
@@ -416,7 +431,7 @@
                 new THREE.Vector2(event.clientX, event.clientY)
             );
             
-            if (dragDistance < 5) { // CLICK
+            if (dragDistance < 5) {
                 angularVelocity.set(0, 0); 
                 
                 const canvasBounds = renderer.domElement.getBoundingClientRect();
@@ -442,11 +457,8 @@
             }
         }
 
-        // =================================================================
-        // == 11. "Roll the Dice" Logic - MODIFIED ==
-        // =================================================================
+        // 11. "Roll the Dice" Logic
         document.getElementById('roll-button').addEventListener('click', () => {
-            // Stop other animations
             isAnimating = false;
             isDragging = false;
             isRolling = false;
@@ -457,7 +469,6 @@
 
             isChoreographedRolling = true;
             
-            // Hide text panel
             updateTeamInfo(null); 
 
             cube.position.set(0, 0, 0);
@@ -465,10 +476,9 @@
             cubeBody.position.copy(cube.position);
             cubeBody.quaternion.copy(cube.quaternion);
 
-            // --- Define Animation Parameters ---
             const totalDuration = 2.0; 
-            const finalX = 4;          // MODIFIED: Move to the right
-            const finalZ = -5;         // MODIFIED: Move away from camera
+            const finalX = 4;
+            const finalZ = -5;
             const floorY = -1;
             
             const bounce1_Y = 1.0; 
@@ -483,50 +493,36 @@
                     const randomNormal = faceNormals[randomMemberIndex];
                     
                     calculateSnapRotation(randomNormal); 
-                    isAnimating = true; // This will trigger the glide-back-to-center
+                    isAnimating = true;
                     
-                    // Set the info to update *after* the animation
                     pendingInfoUpdate = randomMemberIndex;
                 }
             });
 
-            // --- Animate Position (X, Y, Z) using keyframes ---
-            // MODIFIED: Keyframes now move towards finalX and finalZ
             tl.to(cube.position, {
                 duration: totalDuration,
                 ease: "none",
                 keyframes: [
-                    // Bounce 1 Peak
                     { x: finalX * 0.2, y: bounce1_Y, z: finalZ * 0.2, duration: totalDuration * 0.2, ease: "power1.out" },
-                    // Bounce 1 Hit
                     { x: finalX * 0.4, y: floorY, z: finalZ * 0.4, duration: totalDuration * 0.2, ease: "power1.in" },
-                    // Bounce 2 Peak
                     { x: finalX * 0.55, y: bounce2_Y, z: finalZ * 0.55, duration: totalDuration * 0.15, ease: "power1.out" },
-                    // Bounce 2 Hit
                     { x: finalX * 0.7, y: floorY, z: finalZ * 0.7, duration: totalDuration * 0.15, ease: "power1.in" },
-                    // Bounce 3 Peak
                     { x: finalX * 0.8, y: bounce3_Y, z: finalZ * 0.8, duration: totalDuration * 0.1, ease: "power1.out" },
-                    // Bounce 3 Hit
                     { x: finalX * 0.9, y: floorY, z: finalZ * 0.9, duration: totalDuration * 0.1, ease: "power1.in" },
-                    // Settle to final spot (a short skid)
                     { x: finalX, y: floorY, z: finalZ, duration: totalDuration * 0.1, ease: "power1.out" }
                 ]
             }, 0);
 
-            // --- SIMULTANEOUSLY: Animate Rotation ---
             tl.to(cube.rotation, {
-                x: `+=${Math.PI * 8 + Math.random() * 4}`, // Tumble "forward"
-                z: `+=${Math.PI * 7 + Math.random() * 4}`, // Tumble "sideways"
-                y: `+=${Math.PI * 5 + Math.random() * 2}`, // "Spin"
+                x: `+=${Math.PI * 8 + Math.random() * 4}`,
+                z: `+=${Math.PI * 7 + Math.random() * 4}`,
+                y: `+=${Math.PI * 5 + Math.random() * 2}`,
                 duration: totalDuration,
                 ease: "power2.inOut"
             }, 0); 
         });
-        // =================================================================
-        // == END OF MODIFICATIONS ==
-        // =================================================================
 
-        // 12. Snap Logic (Unchanged)
+        // 12. Snap Logic
         function calculateSnapRotation(sourceNormal) {
             const targetNormal = new THREE.Vector3(0, 0, 1);
             const targetUp = new THREE.Vector3(0, 1, 0);
@@ -552,7 +548,11 @@
             targetRotation.setFromRotationMatrix(finalMatrix);
         }
 
-        // Start the animation
+        // Log setup complete
+        console.log('%c3D Team Cube Ready!', 'color: #4ecdc4; font-size: 16px; font-weight: bold;');
+        console.log('Images should load from: ./team_pics/');
+        console.log('Check console for loading status...');
+
         animate();
     </script>
 </body>

@@ -87,4 +87,595 @@
     </div>
   </main>
 </div>
+
+<style>
+    #team-cube-section {
+        background-color: #111827;
+        padding: 6rem 1.5rem;
+        overflow: hidden;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #team-cube-section .main-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        width: 100%;
+        max-width: 1280px;
+        margin: 0 auto;
+        height: 90vh;
+        min-height: 700px;
+    }
+    
+    @media (min-width: 1024px) {
+        #team-cube-section .main-container {
+            grid-template-columns: 1fr 1fr;
+            height: 80vh;
+            min-height: 600px;
+        }
+    }
+
+    #team-cube-section #canvas-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-height: 300px;
+        overflow: hidden;
+        border-radius: 0.75rem;
+        background-color: rgba(0,0,0,0.2);
+    }
+
+    #team-cube-section #webgl-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+
+    #team-cube-section #team-info {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 1rem;
+        box-sizing: border-box;
+        color: #f9fafb;
+    }
+
+    #team-cube-section #roll-button {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        background-color: #ffffff;
+        color: #111827;
+        border: 0;
+        border-radius: 0.375rem;
+        z-index: 10;
+        transition: background-color 0.2s;
+    }
+
+    #team-cube-section #roll-button:hover {
+        background-color: #f3f4f6;
+    }
+
+    #team-cube-section #team-info h2 {
+        font-size: 2.25rem;
+        line-height: 2.5rem;
+        margin-bottom: 0.5rem;
+        color: #ffffff;
+        font-weight: 700;
+    }
+    #team-cube-section #team-info h3 {
+        font-size: 1.5rem;
+        line-height: 2rem;
+        font-weight: 600; 
+        color: #d1d5db;
+        text-align: left;
+    }
+    #team-cube-section #team-info p.title {
+        font-size: 1.125rem;
+        line-height: 1.75rem;
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        color: #818cf8;
+        font-weight: 500;
+    }
+    #team-cube-section #team-info p.bio {
+        font-size: 1rem;
+        line-height: 1.75rem;
+        color: #d1d5db;
+        text-align: left;
+    }
+</style>
+
+<section id="team-cube-section">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="mx-auto max-w-2xl lg:mx-0">
+        <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">Meet the Team</h2>
+        <p class="mt-6 text-lg leading-8 text-gray-300">An interactive look at the minds behind Jumaiya ATS. Click the cube, drag to spin, or "Roll the Dice" to learn more.</p>
+      </div>
+    </div>
+    
+    <div class="main-container mt-16">
+        <div id="canvas-container">
+            <button id="roll-button">Roll the Dice</button>
+            <canvas id="webgl-canvas"></canvas>
+        </div>
+        
+        <div id="team-info">
+            <h3>Click on a team member to find out more about them!</h3>
+        </div>
+    </div>
+</section>
+
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/",
+        "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js",
+        "gsap": "https://unpkg.com/gsap@3.12.5/index.js"
+    }
+}
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+    import * as CANNON from 'cannon-es';
+    import { gsap } from 'gsap';
+
+    // Wait for DOM to be fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTeamCube);
+    } else {
+        initTeamCube();
+    }
+
+    function initTeamCube() {
+        // Team data
+        const teamData = [
+            {
+                name: "Dr. Evelyn Reed",
+                title: "CEO & Founder",
+                bio: "Evelyn is the visionary behind our AI-driven platform, with a Ph.D. in Machine Learning and over 15 years of industry experience in scaling tech startups.",
+                image: "/team_pics/member1.jpg"
+            },
+            {
+                name: "Marcus Cole",
+                title: "Chief Technology Officer",
+                bio: "Marcus leads our engineering team, architecting and scaling our infrastructure to handle millions of requests with unparalleled efficiency and reliability.",
+                image: "/team_pics/member2.jpg"
+            },
+            {
+                name: "Aisha Khan",
+                title: "Head of Product",
+                bio: "Aisha bridges the gap between complex user needs and technical feasibility, ensuring we build features that truly matter and are delightful to use.",
+                image: "/team_pics/member3.jpg"
+            },
+            {
+                name: "Tom Chen",
+                title: "Lead Data Scientist",
+                bio: "Tom and his team are the brains behind our resume parsing algorithms. They are constantly pushing the boundaries of accuracy and fairness in AI.",
+                image: "/team_pics/member4.jpg"
+            },
+            {
+                name: "Sarah Jenkins",
+                title: "UX/UI Design Lead",
+                bio: "Sarah is obsessed with creating a seamless and intuitive user experience, transforming complex data into beautiful and easy-to-understand interfaces.",
+                image: "/team_pics/member5.jpg"
+            },
+            {
+                name: "David Kim",
+                title: "Head of Customer Success",
+                bio: "David ensures every client maximizes their potential with our platform. He provides world-class support, training, and strategic guidance.",
+                image: "/team_pics/member6.jpg"
+            }
+        ];
+        
+        // Core Three.js Setup
+        const scene = new THREE.Scene();
+        const clock = new THREE.Clock(); 
+        const cubeSection = document.getElementById('team-cube-section');
+        
+        if (!cubeSection) {
+            console.error("Team cube section not found!");
+            return;
+        }
+        
+        const canvasContainer = cubeSection.querySelector('#canvas-container');
+        const teamInfoPanel = cubeSection.querySelector('#team-info');
+        const rollButton = cubeSection.querySelector('#roll-button');
+        const canvas = cubeSection.querySelector('#webgl-canvas');
+        
+        if (!canvasContainer || !teamInfoPanel || !rollButton || !canvas) {
+            console.error("Required elements not found!");
+            return;
+        }
+        
+        const defaultInfoHTML = `<h3>Click on a team member to find out more about them!</h3>`;
+
+        const camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
+        camera.position.z = 3; 
+
+        const renderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            alpha: true,
+            antialias: true 
+        });
+        renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        // State Variables
+        let isAnimating = false;    
+        let isDragging = false;     
+        let isRolling = false;      
+        let isChoreographedRolling = false; 
+        let pendingInfoUpdate = -1;
+        
+        const targetRotation = new THREE.Quaternion();
+        const startMousePosition = new THREE.Vector2(); 
+        const previousMousePosition = new THREE.Vector2(); 
+        const deltaMousePosition = new THREE.Vector2();
+        const deltaRotation = new THREE.Quaternion();
+        const angularVelocity = new THREE.Vector2(0, 0);
+        const dampingFactor = 0.95; 
+
+        // Textures and Materials
+        const imageUrls = teamData.map(member => member.image);
+        const textureLoader = new THREE.TextureLoader();
+        const colors = [0xff6b6b, 0x4ecdc4, 0x45b7d1, 0xffa07a, 0x98d8c8, 0xf7dc6f];
+        
+        const materials = imageUrls.map((url, index) => {
+            const texture = textureLoader.load(
+                url,
+                (loadedTexture) => console.log(`✓ Successfully loaded: ${url}`),
+                undefined,
+                (error) => {
+                    console.error(`✗ Failed to load: ${url}`);
+                    materials[index].color.setHex(colors[index]);
+                    materials[index].map = null;
+                    materials[index].needsUpdate = true;
+                }
+            );
+            
+            return new THREE.MeshBasicMaterial({
+                map: texture,
+                color: 0xffffff,
+                side: THREE.DoubleSide
+            });
+        });
+
+        // Geometry and Mesh
+        const geometry = new RoundedBoxGeometry(2, 2, 2, 6, 0.05); 
+        const cube = new THREE.Mesh(geometry, materials);
+        scene.add(cube);
+
+        // Physics Setup
+        const world = new CANNON.World({
+            gravity: new CANNON.Vec3(0, -9.82, 0) 
+        });
+
+        const cubePhysMaterial = new CANNON.Material('cubeMaterial');
+        const floorPhysMaterial = new CANNON.Material('floorMaterial');
+
+        const contactMaterial = new CANNON.ContactMaterial(cubePhysMaterial, floorPhysMaterial, {
+            friction: 0.1,      
+            restitution: 0.7    
+        });
+        world.addContactMaterial(contactMaterial);
+
+        const cubeShape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
+        const cubeBody = new CANNON.Body({
+            mass: 1, 
+            shape: cubeShape,
+            material: cubePhysMaterial
+        });
+        world.addBody(cubeBody);
+
+        const floorShape = new CANNON.Plane();
+        const floorBody = new CANNON.Body({
+            mass: 0, 
+            shape: floorShape,
+            material: floorPhysMaterial
+        });
+        floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+        floorBody.position.set(0, -2, 0);
+        world.addBody(floorBody);
+
+        const faceNormals = [
+            new THREE.Vector3(1, 0, 0),
+            new THREE.Vector3(-1, 0, 0),
+            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(0, -1, 0),
+            new THREE.Vector3(0, 0, 1),
+            new THREE.Vector3(0, 0, -1)
+        ];
+
+        // Update team info panel
+        function updateTeamInfo(memberIndex) {
+            if (memberIndex === null) {
+                gsap.to(teamInfoPanel, { opacity: 0, duration: 0.3 });
+            } else if (memberIndex === 'default') {
+                teamInfoPanel.innerHTML = defaultInfoHTML;
+                gsap.to(teamInfoPanel, { opacity: 1, duration: 0.3 });
+            } else {
+                const member = teamData[memberIndex];
+                teamInfoPanel.innerHTML = `
+                    <h2>${member.name}</h2>
+                    <p class="title">${member.title}</p>
+                    <p class="bio">${member.bio}</p>
+                `;
+                gsap.fromTo(teamInfoPanel, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, delay: 0.3 });
+            }
+        }
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            
+            world.step(1 / 60, delta); 
+
+            if (isChoreographedRolling) {
+                cubeBody.position.copy(cube.position);
+                cubeBody.quaternion.copy(cube.quaternion);
+                cubeBody.velocity.set(0, 0, 0);
+                cubeBody.angularVelocity.set(0, 0, 0);
+            
+            } else if (isRolling) {
+                cube.position.copy(cubeBody.position);
+                cube.quaternion.copy(cubeBody.quaternion);
+
+                if (cubeBody.sleepState === CANNON.Body.SLEEPING) {
+                    isRolling = false;
+                    cubeBody.angularVelocity.set(0,0,0); 
+                    cubeBody.velocity.set(0,0,0);
+
+                    const randomMemberIndex = Math.floor(Math.random() * 6);
+                    const randomNormal = faceNormals[randomMemberIndex];
+                    
+                    calculateSnapRotation(randomNormal); 
+                    isAnimating = true;
+                    pendingInfoUpdate = randomMemberIndex; 
+                }
+
+            } else if (isAnimating) {
+                cube.quaternion.slerp(targetRotation, 0.05);
+                cube.position.lerp(new THREE.Vector3(0, 0, 0), 0.05); 
+
+                if (cube.quaternion.angleTo(targetRotation) < 0.01 && cube.position.length() < 0.01) {
+                    cube.quaternion.copy(targetRotation);
+                    cube.position.set(0, 0, 0);
+                    isAnimating = false;
+                    
+                    if (pendingInfoUpdate !== -1) {
+                        updateTeamInfo(pendingInfoUpdate);
+                        pendingInfoUpdate = -1;
+                    }
+                }
+                
+                cubeBody.position.copy(cube.position);
+                cubeBody.quaternion.copy(cube.quaternion);
+
+            } else if (!isDragging) {
+                if (angularVelocity.lengthSq() > 0.0001) {
+                    const rotationSpeed = 0.005;
+                    const deltaRotationY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), angularVelocity.x * rotationSpeed);
+                    const deltaRotationX = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), angularVelocity.y * rotationSpeed);
+                    deltaRotation.multiplyQuaternions(deltaRotationY, deltaRotationX);
+                    cube.quaternion.multiplyQuaternions(deltaRotation, cube.quaternion);
+                    angularVelocity.multiplyScalar(dampingFactor);
+                } else {
+                    angularVelocity.set(0, 0);
+                }
+                cubeBody.quaternion.copy(cube.quaternion);
+
+            } else {
+                cubeBody.quaternion.copy(cube.quaternion);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Handle Window Resizing
+        function onWindowResize() {
+            camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        }
+        window.addEventListener('resize', onWindowResize);
+        onWindowResize();
+
+        // Mouse event handlers
+        function onMouseDown(event) {
+            if (event.target.id === 'roll-button') return;
+            if (event.target.id !== 'webgl-canvas') return;
+            
+            if (gsap.isTweening(cube.position) || gsap.isTweening(cube.rotation)) {
+                gsap.killTweensOf(cube.position);
+                gsap.killTweensOf(cube.rotation);
+            }
+            isChoreographedRolling = false;
+            isRolling = false;
+            isAnimating = false;
+            isDragging = true;
+            angularVelocity.set(0, 0); 
+            pendingInfoUpdate = -1; 
+
+            updateTeamInfo(null);
+
+            cubeBody.position.copy(cube.position);
+            cubeBody.quaternion.copy(cube.quaternion);
+            cubeBody.angularVelocity.set(0,0,0);
+            cubeBody.velocity.set(0,0,0);
+
+            startMousePosition.set(event.clientX, event.clientY);
+            previousMousePosition.set(event.clientX, event.clientY);
+        }
+
+        function onMouseMove(event) {
+            if (!isDragging) return;
+
+            deltaMousePosition.set(
+                event.clientX - previousMousePosition.x,
+                event.clientY - previousMousePosition.y
+            );
+            const rotationSpeed = 0.005;
+            const deltaRotationY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), deltaMousePosition.x * rotationSpeed);
+            const deltaRotationX = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), deltaMousePosition.y * rotationSpeed);
+            deltaRotation.multiplyQuaternions(deltaRotationY, deltaRotationX);
+            cube.quaternion.multiplyQuaternions(deltaRotation, cube.quaternion);
+            previousMousePosition.set(event.clientX, event.clientY);
+            angularVelocity.copy(deltaMousePosition);
+        }
+
+        function onMouseUp(event) {
+            if (!isDragging) return; 
+            isDragging = false;
+            
+            const dragDistance = startMousePosition.distanceTo(
+                new THREE.Vector2(event.clientX, event.clientY)
+            );
+            
+            if (dragDistance < 5) {
+                angularVelocity.set(0, 0); 
+                
+                const canvasBounds = renderer.domElement.getBoundingClientRect();
+                mouse.x = ((event.clientX - canvasBounds.left) / canvasBounds.width) * 2 - 1;
+                mouse.y = -((event.clientY - canvasBounds.top) / canvasBounds.height) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects([cube]);
+
+                if (intersects.length > 0) {
+                    const intersect = intersects[0];
+                    if (intersect.face) {
+                        const materialIndex = intersect.face.materialIndex;
+                        updateTeamInfo(materialIndex); 
+                        calculateSnapRotation(intersect.face.normal);
+                        isAnimating = true; 
+                    }
+                } else {
+                    updateTeamInfo('default');
+                }
+            } else {
+                updateTeamInfo('default');
+            }
+        }
+
+        // Roll the Dice button handler
+        function onRollClick() {
+            isAnimating = false;
+            isDragging = false;
+            isRolling = false;
+            angularVelocity.set(0, 0);
+            
+            gsap.killTweensOf(cube.position);
+            gsap.killTweensOf(cube.rotation);
+
+            isChoreographedRolling = true;
+            
+            updateTeamInfo(null); 
+
+            cube.position.set(0, 0, 0);
+            cube.rotation.set(0, 0, 0); 
+            cubeBody.position.copy(cube.position);
+            cubeBody.quaternion.copy(cube.quaternion);
+
+            const totalDuration = 2.0; 
+            const finalX = 4;
+            const finalZ = -5;
+            const floorY = -1;
+            
+            const bounce1_Y = 1.0; 
+            const bounce2_Y = 0.4;
+            const bounce3_Y = 0.1; 
+
+            const tl = gsap.timeline({
+                onComplete: () => {
+                    isChoreographedRolling = false;
+                    
+                    const randomMemberIndex = Math.floor(Math.random() * 6);
+                    const randomNormal = faceNormals[randomMemberIndex];
+                    
+                    calculateSnapRotation(randomNormal); 
+                    isAnimating = true;
+                    
+                    pendingInfoUpdate = randomMemberIndex;
+                }
+            });
+
+            tl.to(cube.position, {
+                duration: totalDuration,
+                ease: "none",
+                keyframes: [
+                    { x: finalX * 0.2, y: bounce1_Y, z: finalZ * 0.2, duration: totalDuration * 0.2, ease: "power1.out" },
+                    { x: finalX * 0.4, y: floorY, z: finalZ * 0.4, duration: totalDuration * 0.2, ease: "power1.in" },
+                    { x: finalX * 0.55, y: bounce2_Y, z: finalZ * 0.55, duration: totalDuration * 0.15, ease: "power1.out" },
+                    { x: finalX * 0.7, y: floorY, z: finalZ * 0.7, duration: totalDuration * 0.15, ease: "power1.in" },
+                    { x: finalX * 0.8, y: bounce3_Y, z: finalZ * 0.8, duration: totalDuration * 0.1, ease: "power1.out" },
+                    { x: finalX * 0.9, y: floorY, z: finalZ * 0.9, duration: totalDuration * 0.1, ease: "power1.in" },
+                    { x: finalX, y: floorY, z: finalZ, duration: totalDuration * 0.1, ease: "power1.out" }
+                ]
+            }, 0);
+
+            tl.to(cube.rotation, {
+                x: `+=${Math.PI * 8 + Math.random() * 4}`,
+                z: `+=${Math.PI * 7 + Math.random() * 4}`,
+                y: `+=${Math.PI * 5 + Math.random() * 2}`,
+                duration: totalDuration,
+                ease: "power2.inOut"
+            }, 0); 
+        }
+
+        // Snap Logic
+        function calculateSnapRotation(sourceNormal) {
+            const targetNormal = new THREE.Vector3(0, 0, 1);
+            const targetUp = new THREE.Vector3(0, 1, 0);
+            const targetRight = new THREE.Vector3().crossVectors(targetUp, targetNormal).normalize();
+            const targetMatrix = new THREE.Matrix4().makeBasis(targetRight, targetUp, targetNormal);
+
+            let sourceUp = new THREE.Vector3(0, 1, 0); 
+            if (Math.abs(sourceNormal.y) > 0.99) {
+                if (sourceNormal.y > 0) {
+                    sourceUp.set(0, 0, -1); 
+                } else {
+                    sourceUp.set(0, 0, 1);  
+                }
+            }
+
+            const sourceRight = new THREE.Vector3().crossVectors(sourceUp, sourceNormal).normalize();
+            const sourceUpOrtho = new THREE.Vector3().crossVectors(sourceNormal, sourceRight).normalize();
+            const sourceMatrix = new THREE.Matrix4().makeBasis(sourceRight, sourceUpOrtho, sourceNormal);
+
+            const sourceMatrixInverse = sourceMatrix.clone().invert();
+            const finalMatrix = new THREE.Matrix4().multiplyMatrices(targetMatrix, sourceMatrixInverse);
+
+            targetRotation.setFromRotationMatrix(finalMatrix);
+        }
+
+        // Attach event listeners
+        canvasContainer.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+        rollButton.addEventListener('click', onRollClick);
+
+        console.log('%c3D Team Cube Ready!', 'color: #4ecdc4; font-size: 16px; font-weight: bold;');
+        console.log('Images should load from: /team_pics/');
+        console.log('Check console for loading status...');
+
+        animate();
+    }
+</script>
+
 {% endblock %}
