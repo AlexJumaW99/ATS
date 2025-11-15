@@ -122,7 +122,8 @@
         min-height: 300px;
         overflow: hidden;
         border-radius: 0.75rem;
-        background-color: rgba(0,0,0,0.2);
+        /* UPDATED: Set to transparent to blend with section background */
+        background-color: transparent; 
     }
 
     #team-cube-section #webgl-canvas {
@@ -143,25 +144,7 @@
         color: #f9fafb;
     }
 
-    #team-cube-section #roll-button {
-        position: absolute;
-        top: 20px;
-        left: 20px;
-        padding: 10px 20px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        background-color: #ffffff;
-        color: #111827;
-        border: 0;
-        border-radius: 0.375rem;
-        z-index: 10;
-        transition: background-color 0.2s;
-    }
-
-    #team-cube-section #roll-button:hover {
-        background-color: #f3f4f6;
-    }
+    /* REMOVED: #roll-button styles are now handled by Tailwind */
 
     #team-cube-section #team-info h2 {
         font-size: 2.25rem;
@@ -203,7 +186,10 @@
     
     <div class="main-container mt-16">
         <div id="canvas-container">
-            <button id="roll-button">Roll the Dice</button>
+            <button type="button" id="roll-button" class="absolute top-5 left-5 rounded-full bg-indigo-500 p-2 text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 z-10">
+                <span class="sr-only">Roll the Dice</span>
+                <span aria-hidden="true" class="text-xl leading-none">🎲</span>
+            </button>
             <canvas id="webgl-canvas"></canvas>
         </div>
         
@@ -498,7 +484,10 @@
 
         // Mouse event handlers
         function onMouseDown(event) {
-            if (event.target.id === 'roll-button') return;
+            // Check if click is on the button
+            if (rollButton.contains(event.target)) {
+                return;
+            }
             if (event.target.id !== 'webgl-canvas') return;
             
             if (gsap.isTweening(cube.position) || gsap.isTweening(cube.rotation)) {
@@ -592,7 +581,7 @@
             cubeBody.position.copy(cube.position);
             cubeBody.quaternion.copy(cube.quaternion);
 
-            const totalDuration = 2.0; 
+            const totalDuration = 2.5; 
             const finalX = 4;
             const finalZ = -5;
             const floorY = -1;
