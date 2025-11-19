@@ -22,6 +22,17 @@ class Job(models.Model):
     description = models.TextField()
     job_type = models.CharField(max_length=50) # Changed from 'timing' to 'job_type' to match existing model
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='jobs')
+    
+    #tags or keywords should be collected - x jobs is looking for this collection of key words. match resumes to job postings
+    #get experience from resume, relate exp to job if possible e.g .NET exp
+    #give extra weights to relevant skills 
+    #get open source intelligence
+    #allow recruiter to provide rubric on what is being most looked for
+    #get availability and contact info
+    #internal messaging system between staff and candidates
+    #ai suggestions for improvements, resume tweaks 
+    #with premium for recruiters they can see data that was otherwise anonymous before 
+    
 
     def __str__(self):
         return self.title
